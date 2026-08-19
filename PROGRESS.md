@@ -79,10 +79,12 @@ Last full audit: 2026-08-19.
 ## 8. Match flow
 - Round-based match: countdown → live → intermission → match end, with configurable kills-to-win-round and rounds-to-win-match.
 - Quick match mode (shorter rounds).
+- Manual "Start match" overlay after map load lets players skip the warmup wait.
 - Respawn timer per fighter with spawn FX.
 - Score tracking per team, plus personal kills/deaths.
 - Kill feed: last 6 kills with killer, victim, team colours and weapon.
 - Kill streak banners: Double / Triple / Quad kill, Wolfpack, On a roll (3), Rampage (5), Unstoppable (8), Lone wolf (every 5 after).
+- Polished round/match summary card with Booyah/Defeat banner, K/D and rounds, plus a full-width Play Again CTA.
 - Victory stinger on match win, auto-restart into the next match.
 - End-of-match results saved to the cloud, then the leaderboard refreshes in the HUD.
 
