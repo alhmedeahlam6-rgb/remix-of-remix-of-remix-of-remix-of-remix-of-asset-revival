@@ -273,12 +273,17 @@ export default function GameShell() {
               <p className="text-[10px] uppercase tracking-[0.5em] text-[var(--hud-accent)]">
                 {arenaReady ? "Arena ready" : "Building the arena"}
               </p>
-              <div className="mt-4">
+              <div className="mt-5">
                 <ProgressBar value={arenaReady ? 1 : 0.72} />
               </div>
               <p className="mt-6 min-h-[2.5rem] text-xs leading-relaxed text-muted-foreground">
                 {DEPLOY_TIPS[tip]}
               </p>
+              {arenaReady && (
+                <p className="mt-3 text-[10px] uppercase tracking-[0.35em] text-[var(--hud-accent)]">
+                  Dropping in…
+                </p>
+              )}
             </div>
           </div>
         </div>
