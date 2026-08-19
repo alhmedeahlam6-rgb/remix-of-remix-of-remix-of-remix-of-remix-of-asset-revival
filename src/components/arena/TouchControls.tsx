@@ -179,6 +179,7 @@ export default function TouchControls({
   const [stickActive, setStickActive] = useState(false);
   const [stickPosition, setStickPosition] = useState({ x: 0, y: 0 });
   const [sprintLock, setSprintLock] = useState(false);
+  const [firing, setFiring] = useState(false);
 
   const stickRef = useRef<HTMLDivElement>(null);
   const stickPointerRef = useRef<number | null>(null);
