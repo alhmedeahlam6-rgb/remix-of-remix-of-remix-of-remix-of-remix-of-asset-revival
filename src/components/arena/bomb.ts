@@ -9,6 +9,25 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export const BOMB_FUSE = 5;
+
+/** throwables: frag damages, flash blinds, smoke blocks line of sight */
+export type GrenadeKind = "frag" | "flash" | "smoke";
+
+export const GRENADE_DEFS: Record<
+  GrenadeKind,
+  { label: string; short: string; fuse: number; color: number; light: number }
+> = {
+  frag: { label: "Frag", short: "FRG", fuse: 5, color: 0xff8a3c, light: 0xff5a1e },
+  flash: { label: "Flashbang", short: "FLS", fuse: 1.7, color: 0xfff6d0, light: 0xfff0b0 },
+  smoke: { label: "Smoke", short: "SMK", fuse: 1.5, color: 0xbfc8d4, light: 0x9fb0c4 },
+};
+
+export const GRENADE_KINDS = Object.keys(GRENADE_DEFS) as GrenadeKind[];
+
+/** flashbang blind radius / smoke cloud radius, metres */
+export const FLASH_RADIUS = 16;
+export const SMOKE_RADIUS = 4.2;
+export const SMOKE_LIFE = 9;
 /** blast radius in metres */
 export const BOMB_RADIUS = 5;
 /** damage at the very centre of the blast */
@@ -107,13 +126,19 @@ type Live = {
   fuse: number;
   light: THREE.PointLight;
   spin: THREE.Vector3;
+  kind: GrenadeKind;
 };
 
 export type BombSystem = {
   group: THREE.Group;
   /** number of bombs currently in the air / ticking */
   count: () => number;
-  throwBomb: (from: THREE.Vector3, dir: THREE.Vector3, power?: number) => void;
+  throwBomb: (
+    from: THREE.Vector3,
+    dir: THREE.Vector3,
+    power?: number,
+    kind?: GrenadeKind,
+  ) => void;
   update: (dt: number) => void;
   dispose: () => void;
 };
@@ -122,7 +147,7 @@ export function createBombSystem(opts: {
   /** ground height under a point, or null when there is nothing below */
   groundAt: (x: number, z: number, fromY: number, maxRise?: number) => number | null;
   /** called at the detonation point when the fuse runs out */
-  onExplode: (at: THREE.Vector3) => void;
+  onExplode: (at: THREE.Vector3, kind: GrenadeKind) => void;
   /** called every frame with the shortest remaining fuse (null when idle) */
   onTick?: (fuse: number | null) => void;
 }): BombSystem {
@@ -131,17 +156,24 @@ export function createBombSystem(opts: {
   let template: THREE.Object3D | null = null;
   void loadBombTemplate().then((t) => (template = t));
 
-  const throwBomb = (from: THREE.Vector3, dir: THREE.Vector3, power = THROW_SPEED) => {
+  const throwBomb = (
+    from: THREE.Vector3,
+    dir: THREE.Vector3,
+    power = THROW_SPEED,
+    kind: GrenadeKind = "frag",
+  ) => {
+    const def = GRENADE_DEFS[kind];
     const root = new THREE.Group();
     root.add(template ? template.clone(true) : fallbackBomb());
     root.position.copy(from);
-    const light = new THREE.PointLight(0xff5a1e, 2.5, 6, 2);
+    const light = new THREE.PointLight(def.light, 2.5, 6, 2);
     root.add(light);
     group.add(root);
     live.push({
       root,
       vel: dir.clone().normalize().multiplyScalar(power),
-      fuse: BOMB_FUSE,
+      fuse: def.fuse,
+      kind,
       light,
       spin: new THREE.Vector3(Math.random() * 6 - 3, Math.random() * 6 - 3, Math.random() * 6 - 3),
     });
@@ -172,11 +204,11 @@ export function createBombSystem(opts: {
       if (p.y < -60) b.fuse = Math.min(b.fuse, 0);
 
       // fuse blink speeds up as it gets close
-      const urgency = 1 - Math.max(0, b.fuse) / BOMB_FUSE;
+      const urgency = 1 - Math.max(0, b.fuse) / GRENADE_DEFS[b.kind].fuse;
       b.light.intensity = 1.5 + 3.5 * urgency * (0.5 + 0.5 * Math.sin(performance.now() * 0.006 * (1 + urgency * 6)));
 
       if (b.fuse <= 0) {
-        opts.onExplode(b.root.position.clone());
+        opts.onExplode(b.root.position.clone(), b.kind);
         group.remove(b.root);
         b.root.traverse((o) => {
           const m = o as THREE.Mesh;

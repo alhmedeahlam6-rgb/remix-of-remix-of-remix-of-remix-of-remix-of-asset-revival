@@ -5,6 +5,8 @@
  * localStorage so a loadout of preferences survives reloads.
  */
 
+import type { BotDifficulty } from "./botAi";
+
 export type Quality = "low" | "medium" | "high";
 
 export type WallPlacement = "aim" | "instant";
@@ -192,6 +194,8 @@ export type ArenaSettings = {
    * "instant": the wall drops on the nearest surface in front of you.
    */
   wallPlacement: WallPlacement;
+  /** enemy bot skill tier */
+  botDifficulty: BotDifficulty;
 
   keybinds: Record<BindAction, string>;
   controls: Record<ControlId, ControlLayout>;
@@ -302,6 +306,7 @@ export function defaultSettings(): ArenaSettings {
     autoFire: false,
     autoReload: true,
     wallPlacement: "aim",
+    botDifficulty: "regular",
 
     keybinds: defaultBinds(),
     controls,
@@ -392,6 +397,11 @@ export function loadSettings(): ArenaSettings {
     merged.autoFire = bool(merged.autoFire, false);
     merged.autoReload = bool(merged.autoReload, true);
     merged.wallPlacement = merged.wallPlacement === "instant" ? "instant" : "aim";
+    merged.botDifficulty = pick(
+      merged.botDifficulty,
+      ["recruit", "regular", "veteran", "nightmare"] as const,
+      "regular",
+    );
     return merged;
   } catch {
     return base;

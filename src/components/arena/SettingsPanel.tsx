@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { BOT_PROFILES } from "./botAi";
 import {
   Crosshair,
   Gauge,
@@ -519,6 +520,23 @@ export default function SettingsPanel({ settings, onChange, onClose }: Props) {
                 label="Quick match (shorter rounds)"
                 onClick={() => set("quickMatch", !settings.quickMatch)}
               />
+              <div className="space-y-1.5">
+                <Row label="Enemy skill">
+                  <Segmented
+                    value={settings.botDifficulty}
+                    options={[
+                      ["recruit", "Recruit"],
+                      ["regular", "Regular"],
+                      ["veteran", "Veteran"],
+                      ["nightmare", "Nightmare"],
+                    ] as const}
+                    onSelect={(v) => set("botDifficulty", v)}
+                  />
+                </Row>
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  {BOT_PROFILES[settings.botDifficulty].blurb} Applies to enemies as they respawn.
+                </p>
+              </div>
               <Row label="Sprint">
                 <Segmented
                   value={settings.sprintMode}
