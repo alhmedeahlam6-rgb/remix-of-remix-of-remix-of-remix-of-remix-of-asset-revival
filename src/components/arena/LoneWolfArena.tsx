@@ -23,8 +23,13 @@ import {
   BOMB_RADIUS,
   THROW_SPEED,
   THROW_SPEED_JUMP,
+  FLASH_RADIUS,
+  GRENADE_DEFS,
+  GRENADE_KINDS,
+  type GrenadeKind,
   type BombSystem,
 } from "./bomb";
+import { createSmokeField } from "./smokeCloud";
 import { createExplosionFx } from "./explosionFx";
 import { bakeVertexLighting, makeBlobShadowTexture } from "./bakeLighting";
 import { loadCharacter } from "./characters";
@@ -336,7 +341,15 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   kitPartialRef.current = kitPartial;
   /** 0..1 progress of the medkit currently being applied */
   const [healProgress, setHealProgress] = useState(0);
-  const [bombs, setBombs] = useState(3);
+  /** throwables per type; frag damages, flash blinds, smoke blocks sight */
+  const [grenades, setGrenades] = useState<Record<GrenadeKind, number>>({ frag: 3, flash: 2, smoke: 2 });
+  const [grenadeKind, setGrenadeKind] = useState<GrenadeKind>("frag");
+  const grenadeKindRef = useRef<GrenadeKind>(grenadeKind);
+  grenadeKindRef.current = grenadeKind;
+  const bombs = grenades[grenadeKind];
+  /** 0..1 flashbang blindness, decayed in the render loop */
+  const flashRef = useRef(0);
+  const flashElRef = useRef<HTMLDivElement | null>(null);
   /** true while a bomb is in hand, waiting for the fire button */
   const [bombArmed, setBombArmed] = useState(false);
   const throwBombRef = useRef(() => {});
@@ -3917,9 +3930,23 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     setBombArmed(!!actionsRef.current?.armBomb());
   };
   onBombThrownRef.current = () => {
-    setBombs((b) => Math.max(0, b - 1));
+    const kind = grenadeKindRef.current;
+    setGrenades((g) => ({ ...g, [kind]: Math.max(0, g[kind] - 1) }));
     setBombArmed(false);
   };
+  /** step to the next throwable that still has charges */
+  const cycleGrenade = () => {
+    const from = GRENADE_KINDS.indexOf(grenadeKindRef.current);
+    for (let i = 1; i <= GRENADE_KINDS.length; i += 1) {
+      const next = GRENADE_KINDS[(from + i) % GRENADE_KINDS.length]!;
+      if (grenades[next] > 0 || next === grenadeKindRef.current) {
+        setGrenadeKind(next);
+        return;
+      }
+    }
+  };
+  const cycleGrenadeRef = useRef(cycleGrenade);
+  cycleGrenadeRef.current = cycleGrenade;
   throwBombRef.current = throwBomb;
   useHealthKitRef.current = useHealthKit;
 
