@@ -255,6 +255,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
   const [showDebug, setShowDebug] = useState(false);
   const [status, setStatus] = useState("Loading map…");
+  const [mapLoadProgress, setMapLoadProgress] = useState(0);
   const [showRoof, setShowRoof] = useState(true);
   const [hud, setHud] = useState<HudFighter[]>([]);
   const [score, setScore] = useState<Record<Team, number>>({ blue: 0, red: 0 });
