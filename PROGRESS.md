@@ -1,0 +1,134 @@
+# IRONHOWL — PROGRESS (full audit of what exists right now)
+
+Companion to `.lovable/plan.md`. This file = what is ALREADY built and working.
+After every change the AI must update `.lovable/plan.md` (mark `X` on done items, or log off-list work).
+Last full audit: 2026-08-19.
+
+---
+
+## 1. App shell & boot
+- Single route app: `src/routes/index.tsx` mounts `GameShell` — no page navigation, everything is in-canvas.
+- Phase machine: `boot → lobby → deploy → play`, each with its own screen.
+- Asset preloader (`preload.ts`): streams all models, textures and audio with a live progress bar + status label before the lobby unlocks.
+- Deploy splash: holds until the 3D map is fully built, with a minimum time so it never flickers.
+- Loading tips: 4 rotating gameplay hints cycling every 3.2s on the deploy screen.
+- Orientation gate: asks mobile players to rotate to landscape before playing.
+- Brand mark, splash key art and lobby backdrop images.
+- FPS counter overlay (toggleable).
+- Runtime error capture and error-page hooks for debugging.
+
+## 2. Lobby
+- 3D-lit lobby dashboard with Play, Settings, Character, Map and Shop entries.
+- Character picker: 6 operatives, each with tagline, colour, accent and a signature power; live 3D capsule preview.
+- Map select: choose the arena before deploying.
+- Weapon shop / armory: buy and equip weapons with credits; sell-all refund.
+- Weapon slots: two heavy slots + sidearm, with slot switching and drop-weapon.
+- Selected character persists in localStorage.
+- Global leaderboard preview fetched in the lobby/orbit view.
+
+## 3. Characters & powers
+- Roster: Howl (Frostline vanguard), Ember (close-quarters rusher), Vireo (recon/flanks), Onyx (bubble breacher), Lumen (support/walls), Nyx (silent marksman).
+- 7 active abilities: Coldsnap (−45% damage taken), Overburn, Slipstream, Bulwark, Lifespring, Deadeye, Emberveil.
+- Each power has duration, cooldown, HUD ring, colour and aura VFX (`powerFx.ts`).
+- Power effect channels: damage taken, damage dealt, fire rate, recoil, move speed, HP regen, one-shot shield, instant reload, projected barrier dome.
+- Barrier dome (`barrierDome.ts`): projected bubble that blocks all incoming fire while active.
+
+## 4. Maps & world
+- Frostline Depot — 2v2 industrial duel, fixed blue/red spawns.
+- Timber Outpost — 4v4 woodland compound, separate low-poly collision mesh, ground-snapped spawns, fenced hard bounds.
+- Map barrier system (`mapBarrier.ts`): invisible hard walls so players can never leave the arena.
+- Procedural arena scene builder (`arenaScene.ts`) for the base compound.
+- Day skybox with configurable palette and horizon (`skybox.ts`).
+- Baked vertex lighting (`bakeLighting.ts`) — fast lighting path plus blob shadows.
+- Weather (`weather.ts`): GPU-only rain and snow, max two draw calls, plus lightning flashes that brighten sky/fog and trigger delayed thunder.
+- Collision system (`collision.ts`): merged collider, tiled collision, lazy tile warm-up, nearby-tile queries, step-up and wall probes.
+- Collision debug view for development.
+
+## 5. Weapons
+- 13 weapons: AK47, M4A1, SCAR (Assault), MP40, UMP (SMG), M1014, SPAS12 (Shotgun), AWM, KAR98K (Sniper), M249 (Heavy), Desert Eagle (Pistol), Fists, Combat Knife (Melee).
+- Per-weapon stats: price, damage, fire rate, range, magazine, shop art.
+- Fire modes: auto, single, bolt-action, melee — each with interval, cycle time, pellet count, spread, recoil and scope zoom.
+- Magazines and reserve ammo per weapon (e.g. M249 100/200, AWM 5/20).
+- Reload: arcade 0.5s rack for every gun, with auto-reload-when-empty option and dry-fire feedback.
+- Damage profiles: range falloff, headshot multiplier, per-zone damage.
+- Bullet spread and recoil applied per shot, plus tracers.
+
+## 6. Combat
+- Hitscan shooting with raycast against fighters, walls and level geometry.
+- Headshot / body hit zones with distinct damage and popup colours.
+- Damage numbers projected into screen space over the victim.
+- Hit markers, impact FX with surface-coloured sparks, damage flash vignette and screen shake.
+- Aim assist: Off / Light / Standard / Strong, with target acquisition, lock tracking, aim heaviness and manual-aim override.
+- ADS / scope with per-weapon zoom and separate scoped sensitivity.
+- Gloo walls (`glooWall.ts`): 3.6×2.5×0.9 deployable cover with its own HP, damage states and destruction; two placement modes (ghost aim-and-place, or instant drop).
+- Bombs (`bomb.ts`): 5s fuse, 5m radius, 300 damage, physics arc with live trajectory preview, different throw power when jumping.
+- Explosion FX with radius-scaled blast.
+- Medkits: timed channelled heal that cancels if you move.
+- Bot AI (`buildBot`, `botTick`): enemy and ally fighters that navigate, ground-probe, acquire targets and shoot.
+
+## 7. Movement & controls
+- Desktop: WASD move, jump, sprint, crouch, prone, reload, gloo wall, bomb, medkit, character power, shop — all rebindable.
+- Non-QWERTY keyboard detection: bindings keep physical position and are relabelled to the user's printed keys.
+- Sprint and ADS each switchable between Hold and Toggle.
+- Pointer lock mouse look, wheel input, fullscreen mode with reserved-key handling.
+- Prone lowers eye height; crouch changes profile.
+- Touch controls: movement stick, sprint indicator, fire button, scope toggle, jump, crouch, prone, gloo wall, medkit, bomb and backpack.
+- Controls editor: drag to reposition, scale and hide any individual touch button; layout persists.
+- Touch look with separate touch sensitivity and multi-pointer tracking.
+
+## 8. Match flow
+- Round-based match: countdown → live → intermission → match end, with configurable kills-to-win-round and rounds-to-win-match.
+- Quick match mode (shorter rounds).
+- Respawn timer per fighter with spawn FX.
+- Score tracking per team, plus personal kills/deaths.
+- Kill feed: last 6 kills with killer, victim, team colours and weapon.
+- Kill streak banners: Double / Triple / Quad kill, Wolfpack, On a roll (3), Rampage (5), Unstoppable (8), Lone wolf (every 5 after).
+- Victory stinger on match win, auto-restart into the next match.
+- End-of-match results saved to the cloud, then the leaderboard refreshes in the HUD.
+
+## 9. HUD
+- Health, ammo, weapon slots, ability cooldown ring, gloo/medkit/bomb counters.
+- Minimap (`Minimap.tsx`) with teammates, enemies and geometry.
+- Kill feed, streak banner, round/score header, personal K/D readout.
+- Crosshair engine: cross / dot / circle / none, custom colour, size, thickness, opacity, dynamic bloom, centre dot.
+- HUD opacity, HUD scale and per-element toggles.
+
+## 10. Audio
+- Procedural WebAudio SFX engine (`sfx.ts`): rifle, carbine, SMG, shotgun, sniper, MG, pistol, deagle, knife, hit, kill, spawn, reload, pump, dry-fire and more.
+- Distance-attenuated positional one-shots and stoppable loops.
+- Victory stinger, thunder with strike delay, and looping rain/snow ambience beds.
+- Master volume, effects volume, mute, hit sounds; auto-suspend when the tab is hidden.
+
+## 11. Video & performance
+- Quality presets: Low / Balanced / High.
+- Render resolution scale, effects/particle density, shadow toggle, baked-lighting toggle.
+- Live sky brightness, fog intensity, cloud drift and baked ground-light sliders.
+- Adaptive pixel ratio, lazy-loaded arena bundle, collision tile warm-up to avoid hitches.
+
+## 12. Settings panel (8 tabs, all persisted locally)
+- Aim: mouse/touch sensitivity, scoped sensitivity, FOV, aim assist, ADS mode, invert Y.
+- Crosshair: style, colour, size, thickness, opacity, dynamic spread, centre dot, hit markers.
+- Interface: HUD opacity/size, screen shake, minimap, kill feed, damage numbers, damage vignette, FPS counter.
+- Audio: master, effects, hit sounds, mute.
+- Video: quality, render scale, effects density, shadows, baked light, sky/fog/cloud/ground sliders.
+- Gameplay: auto-fire, auto-reload, quick match, sprint mode, gloo wall placement mode.
+- Keyboard: click-to-rebind every action, reset keybinds.
+- Controls: touch-control toggle + full on-screen layout editor.
+- Reset-all and back-to-match actions.
+
+## 13. Backend (Lovable Cloud)
+- `saveMatchResult` server function: writes blue/red score, winner, player team, kills and deaths to `match_results`.
+- `getLeaderboard` server function: reads the last 100 matches and aggregates per-team wins, losses, kills and deaths plus the 10 most recent games.
+- Supabase client, admin client, auth middleware and auth attacher wired in.
+- Note: no SQL migration file is checked into `supabase/migrations` — the `match_results` table lives only in the cloud project.
+
+## 14. Extras
+- Screenshot capture and in-browser match recording (`capture.ts`).
+- Spawn FX, power FX, impact FX and explosion FX particle systems.
+- Backpack panel on touch HUD.
+- Weapon drop and sell-all economy actions.
+
+---
+
+## Known gaps vs `.lovable/plan.md`
+No accounts/guest login, profile card, Gold/Diamonds, Store, Luck Royale, Booyah Pass, pets, guilds, friends, chat or voice. No BR mode, plane/drop sequence, safe zone, loot/attachments, backpacks, armour tiers, EP system, vehicles, ziplines, knock/revive, spectating or match summary/rank screens.
