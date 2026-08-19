@@ -3805,7 +3805,30 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         </div>
       )}
 
-
+      {readyToStart && !status && (
+        <div className="pointer-events-auto absolute inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-background/80 p-6 text-center backdrop-blur-md">
+          <h2 className="text-3xl font-black uppercase tracking-[0.15em] text-foreground sm:text-4xl">
+            Arena ready
+          </h2>
+          <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+            Warm up, check your loadout, then drop in when you're ready.
+          </p>
+          <button
+            type="button"
+            onClick={startMatchNow}
+            className="min-w-[220px] rounded-xl bg-[var(--hud-accent)] px-8 py-3 text-xs font-black uppercase tracking-[0.2em] text-[var(--hud-accent-foreground)] shadow-[var(--shadow-hud)] transition hover:brightness-110 active:scale-95"
+          >
+            Start match
+          </button>
+          <button
+            type="button"
+            onClick={() => onExit?.()}
+            className="min-w-[220px] rounded-xl border border-border bg-card/80 px-8 py-3 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground transition hover:bg-secondary active:scale-95"
+          >
+            Back to lobby
+          </button>
+        </div>
+      )}
 
       {mode === "walk" && (
 
