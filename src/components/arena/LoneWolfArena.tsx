@@ -3550,6 +3550,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       cancelWarm?.();
       cancelWarm = null;
       cancelAnimationFrame(raf);
+      window.clearTimeout(leaderboardTimer);
+      window.removeEventListener("pointerdown", onFirstInteraction);
+      window.removeEventListener("keydown", onFirstInteraction);
       for (const t of popupTimersRef.current) window.clearTimeout(t);
       popupTimersRef.current = [];
       renderer.domElement.removeEventListener("pointerdown", onTouchLookStart);
