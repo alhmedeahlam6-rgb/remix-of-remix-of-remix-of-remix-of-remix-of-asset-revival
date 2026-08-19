@@ -72,7 +72,7 @@ Last full audit: 2026-08-19.
 - Sprint and ADS each switchable between Hold and Toggle.
 - Pointer lock mouse look, wheel input, fullscreen mode with reserved-key handling.
 - Prone lowers eye height; crouch changes profile.
-- Touch controls: movement stick, sprint indicator, fire button, scope toggle, jump, crouch, prone, gloo wall, medkit, bomb and backpack.
+- Touch controls: movement stick (210px), sprint indicator, larger fire button (104px) with press feedback, scope toggle, jump, crouch, prone, gloo wall, medkit, bomb and backpack.
 - Controls editor: drag to reposition, scale and hide any individual touch button; layout persists.
 - Touch look with separate touch sensitivity and multi-pointer tracking.
 
