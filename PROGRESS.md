@@ -24,7 +24,7 @@ Last full audit: 2026-08-19.
 - Weapon shop / armory: buy and equip weapons with credits; sell-all refund.
 - Weapon slots: two heavy slots + sidearm, with slot switching and drop-weapon.
 - Selected character persists in localStorage.
-- Global leaderboard preview fetched in the lobby/orbit view.
+- Global leaderboard preview fetched in the lobby/orbit view (deferred until first interaction or 2.5s idle to speed boot).
 
 ## 3. Characters & powers
 - Roster: Howl (Frostline vanguard), Ember (close-quarters rusher), Vireo (recon/flanks), Onyx (bubble breacher), Lumen (support/walls), Nyx (silent marksman).
