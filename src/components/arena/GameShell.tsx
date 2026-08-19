@@ -23,15 +23,24 @@ const DEPLOY_TIPS = [
   "Headshots hit for double. Slow down, then squeeze.",
   "Buy phase: press B to open the armory between rounds.",
   "Two heavies and a sidearm. Choose the pair that covers every range.",
+  "Auto-fire is great on phones — turn it on in Settings > Gameplay.",
+  "Low on frames? Switch Quality to Low in Settings > Video.",
 ];
 
 function ProgressBar({ value }: { value: number }) {
+  const pct = Math.round(value * 100);
   return (
-    <div className="h-[3px] w-full overflow-hidden rounded-full bg-foreground/10">
-      <div
-        className="h-full rounded-full transition-[width] duration-200 ease-out"
-        style={{ width: `${Math.round(value * 100)}%`, background: "var(--gradient-hud)" }}
-      />
+    <div className="w-full">
+      <div className="h-[4px] w-full overflow-hidden rounded-full bg-foreground/10">
+        <div
+          className="h-full rounded-full transition-[width] duration-200 ease-out"
+          style={{ width: `${pct}%`, background: "var(--gradient-hud)" }}
+        />
+      </div>
+      <div className="mt-2 flex items-center justify-between text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+        <span>{value >= 1 ? "Assets cached" : "Streaming assets"}</span>
+        <span className="tabular-nums">{pct}%</span>
+      </div>
     </div>
   );
 }
