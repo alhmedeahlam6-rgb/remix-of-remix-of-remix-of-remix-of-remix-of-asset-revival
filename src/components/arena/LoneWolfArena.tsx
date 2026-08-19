@@ -757,6 +757,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     const target = new THREE.Vector3(0, 6, 0);
 
     const walkPos = new THREE.Vector3(-50, 0, -66); // FEET position
+    // sampled once per frame so bots can tell a strafing player from a static one
+    const prevWalkPos = walkPos.clone();
+    const walkMovingRef = { current: false };
     let velY = 0;
     let grounded = false;
     // movement-audio bookkeeping
@@ -3550,6 +3553,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         setWeaponReady(true);
       }
 
+
+      walkMovingRef.current = prevWalkPos.distanceToSquared(walkPos) > 0.0025;
+      prevWalkPos.copy(walkPos);
 
       for (const f of fighters) {
         if (!f.isHuman) botTick(f, dt);
