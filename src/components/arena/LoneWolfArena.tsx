@@ -2796,11 +2796,16 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         setStatus("");
       },
       (e) => {
-        if (e.total) setStatus(`Loading map… ${Math.round((e.loaded / e.total) * 100)}%`);
+        if (e.total) {
+          const pct = e.loaded / e.total;
+          setMapLoadProgress(pct);
+          setStatus(`Loading map… ${Math.round(pct * 100)}%`);
+        }
       },
       (err) => {
         console.error("[arena] map load failed", err);
         setStatus("Failed to load the map file.");
+        setMapLoadProgress(0);
       },
     );
 
