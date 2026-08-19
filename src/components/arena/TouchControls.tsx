@@ -396,10 +396,10 @@ export default function TouchControls({
         </button>
       </ControlWrap>
 
-      <ControlWrap {...wrap} id="fire" anchor="bottom-6 right-[92px]" origin="bottom right">
+      <ControlWrap {...wrap} id="fire" anchor="bottom-8 right-8" origin="bottom right">
         <button
           aria-label="Fire"
-          className={`${disc} h-[88px] w-[88px] border-white/35 bg-white/10`}
+          className={`${disc} h-[104px] w-[104px] border-white/35 bg-white/10 ${firing ? "scale-95 bg-white/20 ring-2 ring-[var(--hud-accent)]" : ""}`}
           onPointerDown={
             editing
               ? undefined
@@ -408,14 +408,21 @@ export default function TouchControls({
                   event.stopPropagation();
                   if (firePointerRef.current !== null) return;
                   firePointerRef.current = event.pointerId;
+                  setFiring(true);
                   onShootStart();
                 }
           }
-          onPointerUp={(event) => releaseFire(event.pointerId)}
-          onPointerCancel={(event) => releaseFire(event.pointerId)}
+          onPointerUp={(event) => {
+            setFiring(false);
+            releaseFire(event.pointerId);
+          }}
+          onPointerCancel={(event) => {
+            setFiring(false);
+            releaseFire(event.pointerId);
+          }}
           onContextMenu={(event) => event.preventDefault()}
         >
-          <img src={fistIcon} alt="" className={`h-11 w-11 ${glyph}`} />
+          <img src={fistIcon} alt="" className={`h-12 w-12 ${glyph}`} />
         </button>
       </ControlWrap>
 
