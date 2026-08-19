@@ -73,6 +73,15 @@ import {
   getReloadTime,
   type Weapon,
 } from "./weapons";
+import {
+  BOT_PROFILES,
+  createBotBrain,
+  preferredRangeFor,
+  rerollStrafe,
+  rollBurst,
+  rollPause,
+  type BotBrain,
+} from "./botAi";
 
 // The outpost collision clone still contains hundreds of thousands of
 // triangles. Three's default raycaster scans those triangles for every ground
@@ -139,6 +148,8 @@ type Fighter = {
   fx: SpawnFx | null;
   /** weapon id used for damage/fire-rate calculations */
   weapon: string;
+  /** tactical brain — null for the human player */
+  ai: BotBrain | null;
 };
 
 type HudFighter = { id: string; team: Team; hp: number; alive: boolean; isHuman: boolean };
@@ -2692,6 +2703,12 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
             tracer: null,
             fx: null,
             weapon,
+            ai: isHuman
+              ? null
+              : createBotBrain(
+                  settingsRef.current.botDifficulty,
+                  preferredRangeFor(getWeaponRange(getWeapon(weapon)!) || 120),
+                ),
           };
           // personal spawn effect, sitting on this fighter's own spot
           const fx = createSpawnFx(team === "blue" ? "water" : "fire", home.top, initialQuality);
