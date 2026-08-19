@@ -562,9 +562,21 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
 
   useEffect(() => {
-    getLeaderboard()
-      .then((res) => setOrbitLeaderboard(res))
-      .catch(() => {});
+    // Defer leaderboard fetch so boot / map load isn't competing for bandwidth.
+    const fetchLeaderboard = () => {
+      getLeaderboard()
+        .then((res) => setOrbitLeaderboard(res))
+        .catch(() => {});
+    };
+    const leaderboardTimer = window.setTimeout(fetchLeaderboard, 2500);
+    const onFirstInteraction = () => {
+      window.clearTimeout(leaderboardTimer);
+      fetchLeaderboard();
+      window.removeEventListener("pointerdown", onFirstInteraction);
+      window.removeEventListener("keydown", onFirstInteraction);
+    };
+    window.addEventListener("pointerdown", onFirstInteraction, { once: true });
+    window.addEventListener("keydown", onFirstInteraction, { once: true });
 
     const mount = mountRef.current;
     if (!mount) return;
