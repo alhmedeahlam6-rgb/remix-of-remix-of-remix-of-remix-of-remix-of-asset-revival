@@ -10,7 +10,7 @@ Last full audit: 2026-08-19.
 - Single route app: `src/routes/index.tsx` mounts `GameShell` — no page navigation, everything is in-canvas.
 - Phase machine: `boot → lobby → deploy → play`, each with its own screen.
 - Asset preloader (`preload.ts`): streams all models, textures and audio with a live progress bar + status label before the lobby unlocks.
-- Deploy splash: holds until the 3D map is fully built, with a minimum time so it never flickers.
+- Deploy splash: holds until the 3D map is fully built, with a minimum time so it never flickers; now shows percentage readout and extra mobile tips.
 - Loading tips: 4 rotating gameplay hints cycling every 3.2s on the deploy screen.
 - Orientation gate: asks mobile players to rotate to landscape before playing.
 - Brand mark, splash key art and lobby backdrop images.
@@ -24,7 +24,7 @@ Last full audit: 2026-08-19.
 - Weapon shop / armory: buy and equip weapons with credits; sell-all refund.
 - Weapon slots: two heavy slots + sidearm, with slot switching and drop-weapon.
 - Selected character persists in localStorage.
-- Global leaderboard preview fetched in the lobby/orbit view.
+- Global leaderboard preview fetched in the lobby/orbit view (deferred until first interaction or 2.5s idle to speed boot).
 
 ## 3. Characters & powers
 - Roster: Howl (Frostline vanguard), Ember (close-quarters rusher), Vireo (recon/flanks), Onyx (bubble breacher), Lumen (support/walls), Nyx (silent marksman).
@@ -72,17 +72,19 @@ Last full audit: 2026-08-19.
 - Sprint and ADS each switchable between Hold and Toggle.
 - Pointer lock mouse look, wheel input, fullscreen mode with reserved-key handling.
 - Prone lowers eye height; crouch changes profile.
-- Touch controls: movement stick, sprint indicator, fire button, scope toggle, jump, crouch, prone, gloo wall, medkit, bomb and backpack.
+- Touch controls: movement stick (210px), sprint indicator, larger fire button (104px) with press feedback, scope toggle, jump, crouch, prone, gloo wall, medkit, bomb and backpack.
 - Controls editor: drag to reposition, scale and hide any individual touch button; layout persists.
 - Touch look with separate touch sensitivity and multi-pointer tracking.
 
 ## 8. Match flow
 - Round-based match: countdown → live → intermission → match end, with configurable kills-to-win-round and rounds-to-win-match.
 - Quick match mode (shorter rounds).
+- Manual "Start match" overlay after map load lets players skip the warmup wait.
 - Respawn timer per fighter with spawn FX.
 - Score tracking per team, plus personal kills/deaths.
 - Kill feed: last 6 kills with killer, victim, team colours and weapon.
 - Kill streak banners: Double / Triple / Quad kill, Wolfpack, On a roll (3), Rampage (5), Unstoppable (8), Lone wolf (every 5 after).
+- Polished round/match summary card with Booyah/Defeat banner, K/D and rounds, plus a full-width Play Again CTA.
 - Victory stinger on match win, auto-restart into the next match.
 - End-of-match results saved to the cloud, then the leaderboard refreshes in the HUD.
 

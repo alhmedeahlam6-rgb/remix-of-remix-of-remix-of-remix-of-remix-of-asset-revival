@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
@@ -255,6 +255,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
   const [showDebug, setShowDebug] = useState(false);
   const [status, setStatus] = useState("Loading map…");
+  const [mapLoadProgress, setMapLoadProgress] = useState(0);
   const [showRoof, setShowRoof] = useState(true);
   const [hud, setHud] = useState<HudFighter[]>([]);
   const [score, setScore] = useState<Record<Team, number>>({ blue: 0, red: 0 });
@@ -561,9 +562,21 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
 
   useEffect(() => {
-    getLeaderboard()
-      .then((res) => setOrbitLeaderboard(res))
-      .catch(() => {});
+    // Defer leaderboard fetch so boot / map load isn't competing for bandwidth.
+    const fetchLeaderboard = () => {
+      getLeaderboard()
+        .then((res) => setOrbitLeaderboard(res))
+        .catch(() => {});
+    };
+    const leaderboardTimer = window.setTimeout(fetchLeaderboard, 2500);
+    const onFirstInteraction = () => {
+      window.clearTimeout(leaderboardTimer);
+      fetchLeaderboard();
+      window.removeEventListener("pointerdown", onFirstInteraction);
+      window.removeEventListener("keydown", onFirstInteraction);
+    };
+    window.addEventListener("pointerdown", onFirstInteraction, { once: true });
+    window.addEventListener("keydown", onFirstInteraction, { once: true });
 
     const mount = mountRef.current;
     if (!mount) return;
@@ -2795,11 +2808,16 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         setStatus("");
       },
       (e) => {
-        if (e.total) setStatus(`Loading map… ${Math.round((e.loaded / e.total) * 100)}%`);
+        if (e.total) {
+          const pct = e.loaded / e.total;
+          setMapLoadProgress(pct);
+          setStatus(`Loading map… ${Math.round(pct * 100)}%`);
+        }
       },
       (err) => {
         console.error("[arena] map load failed", err);
         setStatus("Failed to load the map file.");
+        setMapLoadProgress(0);
       },
     );
 
@@ -3532,6 +3550,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       cancelWarm?.();
       cancelWarm = null;
       cancelAnimationFrame(raf);
+      window.clearTimeout(leaderboardTimer);
+      window.removeEventListener("pointerdown", onFirstInteraction);
+      window.removeEventListener("keydown", onFirstInteraction);
       for (const t of popupTimersRef.current) window.clearTimeout(t);
       popupTimersRef.current = [];
       renderer.domElement.removeEventListener("pointerdown", onTouchLookStart);
@@ -3585,19 +3606,28 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     canvas?.requestPointerLock?.();
   };
 
-  /** The shell (splash → lobby → deploy) starts the match once the map is ready. */
+  /** The shell (splash → lobby → deploy) shows a Start Match button once the map is ready. */
   const startedRef = useRef(false);
+  const [readyToStart, setReadyToStart] = useState(false);
   useEffect(() => {
     if (status || startedRef.current) return;
+    setReadyToStart(true);
+    onReady?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  const startMatchNow = useCallback(() => {
+    if (startedRef.current) return;
     startedRef.current = true;
+    setReadyToStart(false);
     const cfg = settingsRef.current.quickMatch ? MATCH_CONFIG.quick : MATCH_CONFIG.standard;
     setMatchConfig(cfg);
     matchConfigRef.current = cfg;
     startMatchRef.current?.();
     setMode("walk");
-    onReady?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+    const canvas = mountRef.current?.querySelector("canvas");
+    canvas?.requestPointerLock?.();
+  }, []);
 
 
   useEffect(() => {
@@ -3779,12 +3809,41 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
 
       {status && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs uppercase tracking-[0.3em] text-muted-foreground">
-          {status}
+        <div className="pointer-events-none absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm">
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{status}</p>
+          <div className="h-1.5 w-56 overflow-hidden rounded-full bg-foreground/10">
+            <div
+              className="h-full rounded-full transition-[width] duration-200 ease-out"
+              style={{ width: `${Math.round(mapLoadProgress * 100)}%`, background: "var(--gradient-hud)" }}
+            />
+          </div>
         </div>
       )}
 
-
+      {readyToStart && !status && (
+        <div className="pointer-events-auto absolute inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-background/80 p-6 text-center backdrop-blur-md">
+          <h2 className="text-3xl font-black uppercase tracking-[0.15em] text-foreground sm:text-4xl">
+            Arena ready
+          </h2>
+          <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+            Warm up, check your loadout, then drop in when you're ready.
+          </p>
+          <button
+            type="button"
+            onClick={startMatchNow}
+            className="min-w-[220px] rounded-xl bg-[var(--hud-accent)] px-8 py-3 text-xs font-black uppercase tracking-[0.2em] text-[var(--hud-accent-foreground)] shadow-[var(--shadow-hud)] transition hover:brightness-110 active:scale-95"
+          >
+            Start match
+          </button>
+          <button
+            type="button"
+            onClick={() => onExit?.()}
+            className="min-w-[220px] rounded-xl border border-border bg-card/80 px-8 py-3 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground transition hover:bg-secondary active:scale-95"
+          >
+            Back to lobby
+          </button>
+        </div>
+      )}
 
       {mode === "walk" && (
 
@@ -4230,44 +4289,67 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
             </div>
           )}
           {match.phase !== "round" && match.phase !== "countdown" && match.phase !== "warmup" && (
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/60">
-              <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">
-                {match.phase === "intermission" ? "Round over" : "Match over"}
-              </p>
-              {(() => {
-                const winner = match.matchWinner ?? match.roundWinner;
-                const won = winner === "blue";
-                return won ? (
-                  <div className="rounded-md border-2 border-[#ffd76a] bg-gradient-to-b from-[#ffe9a8] to-[#e2a712] px-10 py-3 shadow-[0_0_40px_-8px_rgba(255,200,80,0.9)]">
-                    <p className="text-4xl font-black uppercase tracking-[0.25em] text-[#4a2c00] sm:text-5xl">
-                      Booyah
-                    </p>
-                  </div>
-                ) : (
-                  <div className="rounded-md border-2 border-white/25 bg-gradient-to-b from-[#5b6068] to-[#2b2f35] px-10 py-3 shadow-[0_0_40px_-12px_rgba(0,0,0,0.9)]">
-                    <p className="text-4xl font-black uppercase tracking-[0.25em] text-white/80 sm:text-5xl">
-                      Defeat
-                    </p>
-                  </div>
-                );
-              })()}
-              <p className="text-2xl font-semibold tabular-nums text-foreground">
-                {match.blue} – {match.red}
-              </p>
-              <p className="text-sm uppercase tracking-widest text-muted-foreground">
-                You · {playerStatsHud.kills} K / {playerStatsHud.deaths} D
-              </p>
-              {match.countdown > 0 && (
-                <p className="text-sm uppercase tracking-widest text-muted-foreground">
-                  {match.phase === "matchEnd" ? "Next match" : "Next round"} in {match.countdown}
-                </p>
-              )}
-              <button
-                onClick={enterWalk}
-                className="pointer-events-auto mt-2 rounded-lg bg-[var(--hud-accent)] px-6 py-2 text-xs font-bold uppercase tracking-widest text-[var(--hud-accent-foreground)] transition hover:brightness-110"
-              >
-                Play again
-              </button>
+            <div className="pointer-events-auto absolute inset-0 z-40 flex items-center justify-center bg-background/70 p-4 backdrop-blur-md">
+              <div className="w-full max-w-sm rounded-2xl border border-border/70 bg-card/95 p-6 text-center shadow-[var(--shadow-hud)]">
+                {(() => {
+                  const winner = match.matchWinner ?? match.roundWinner;
+                  const won = winner === "blue";
+                  return (
+                    <>
+                      <p className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
+                        {match.phase === "intermission" ? "Round over" : "Match over"}
+                      </p>
+                      {won ? (
+                        <div className="mx-auto mt-3 w-fit rounded-md border-2 border-[#ffd76a] bg-gradient-to-b from-[#ffe9a8] to-[#e2a712] px-8 py-2.5 shadow-[0_0_40px_-8px_rgba(255,200,80,0.9)]">
+                          <p className="text-3xl font-black uppercase tracking-[0.25em] text-[#4a2c00] sm:text-4xl">
+                            Booyah
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mx-auto mt-3 w-fit rounded-md border-2 border-white/25 bg-gradient-to-b from-[#5b6068] to-[#2b2f35] px-8 py-2.5 shadow-[0_0_40px_-12px_rgba(0,0,0,0.9)]">
+                          <p className="text-3xl font-black uppercase tracking-[0.25em] text-white/80 sm:text-4xl">
+                            Defeat
+                          </p>
+                        </div>
+                      )}
+                      <p className="mt-4 text-2xl font-semibold tabular-nums text-foreground">
+                        {match.blue} – {match.red}
+                      </p>
+                      <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl border border-border/60 bg-secondary/40 p-3">
+                        <div>
+                          <p className="text-xl font-bold tabular-nums text-foreground">{playerStatsHud.kills}</p>
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Kills</p>
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold tabular-nums text-foreground">{playerStatsHud.deaths}</p>
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Deaths</p>
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold tabular-nums text-foreground">
+                            {playerStatsHud.deaths === 0 ? playerStatsHud.kills : (playerStatsHud.kills / Math.max(1, playerStatsHud.deaths)).toFixed(2)}
+                          </p>
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">K/D</p>
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold tabular-nums text-foreground">{match.round}</p>
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Rounds</p>
+                        </div>
+                      </div>
+                      {match.countdown > 0 && (
+                        <p className="mt-4 text-xs uppercase tracking-widest text-muted-foreground">
+                          {match.phase === "matchEnd" ? "Next match" : "Next round"} in {match.countdown}
+                        </p>
+                      )}
+                      <button
+                        onClick={enterWalk}
+                        className="mt-5 w-full rounded-xl bg-[var(--hud-accent)] px-6 py-3 text-xs font-black uppercase tracking-[0.2em] text-[var(--hud-accent-foreground)] shadow-[var(--shadow-hud)] transition hover:brightness-110 active:scale-95"
+                      >
+                        Play again
+                      </button>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           )}
         </>

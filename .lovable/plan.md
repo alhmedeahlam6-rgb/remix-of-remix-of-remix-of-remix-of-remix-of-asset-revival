@@ -14,7 +14,11 @@
 
 ## OFF-LIST WORK
 
-(append here)
+- X Polished deploy/boot UX — percentage readout, extra mobile tips, clearer CTA — files: `src/components/arena/GameShell.tsx`
+- X Manual "Start match" overlay after map load with back-to-lobby option — files: `src/components/arena/LoneWolfArena.tsx`
+- X Deferred leaderboard fetch until first interaction or 2.5s idle — files: `src/components/arena/LoneWolfArena.tsx`
+- X Richer match summary card with K/D, rounds and prominent Play Again CTA — files: `src/components/arena/LoneWolfArena.tsx`
+- X Larger touch fire/move zones and fire-button press feedback — files: `src/components/arena/TouchControls.tsx`
 
 ---
 

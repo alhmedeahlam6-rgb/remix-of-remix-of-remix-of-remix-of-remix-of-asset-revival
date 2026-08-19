@@ -23,15 +23,24 @@ const DEPLOY_TIPS = [
   "Headshots hit for double. Slow down, then squeeze.",
   "Buy phase: press B to open the armory between rounds.",
   "Two heavies and a sidearm. Choose the pair that covers every range.",
+  "Auto-fire is great on phones — turn it on in Settings > Gameplay.",
+  "Low on frames? Switch Quality to Low in Settings > Video.",
 ];
 
 function ProgressBar({ value }: { value: number }) {
+  const pct = Math.round(value * 100);
   return (
-    <div className="h-[3px] w-full overflow-hidden rounded-full bg-foreground/10">
-      <div
-        className="h-full rounded-full transition-[width] duration-200 ease-out"
-        style={{ width: `${Math.round(value * 100)}%`, background: "var(--gradient-hud)" }}
-      />
+    <div className="w-full">
+      <div className="h-[4px] w-full overflow-hidden rounded-full bg-foreground/10">
+        <div
+          className="h-full rounded-full transition-[width] duration-200 ease-out"
+          style={{ width: `${pct}%`, background: "var(--gradient-hud)" }}
+        />
+      </div>
+      <div className="mt-2 flex items-center justify-between text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
+        <span>{value >= 1 ? "Assets cached" : "Streaming assets"}</span>
+        <span className="tabular-nums">{pct}%</span>
+      </div>
     </div>
   );
 }
@@ -130,7 +139,7 @@ export default function GameShell() {
                   onClick={() => setPhase("lobby")}
                   className="rounded-full border border-[var(--hud-accent)]/60 bg-background/40 px-12 py-3 text-[11px] font-bold uppercase tracking-[0.5em] text-foreground backdrop-blur transition hover:bg-[var(--hud-accent)] hover:text-[var(--hud-accent-foreground)] active:scale-95"
                 >
-                  Enter
+                  Enter arena
                 </button>
               ) : (
                 <p className="animate-pulse text-[10px] uppercase tracking-[0.5em] text-muted-foreground">
@@ -140,10 +149,11 @@ export default function GameShell() {
             </div>
             <div className="w-full max-w-md">
               <ProgressBar value={progress} />
-              <div className="mt-3 flex items-center justify-between text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-                <span>{loaded ? "Assets cached" : "Streaming assets"}</span>
-                <span className="tabular-nums">{Math.round(progress * 100)}%</span>
-              </div>
+              {loaded && (
+                <p className="mt-3 text-center text-[10px] uppercase tracking-[0.35em] text-[var(--hud-accent)]">
+                  Tap Enter to start
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -263,12 +273,17 @@ export default function GameShell() {
               <p className="text-[10px] uppercase tracking-[0.5em] text-[var(--hud-accent)]">
                 {arenaReady ? "Arena ready" : "Building the arena"}
               </p>
-              <div className="mt-4">
+              <div className="mt-5">
                 <ProgressBar value={arenaReady ? 1 : 0.72} />
               </div>
               <p className="mt-6 min-h-[2.5rem] text-xs leading-relaxed text-muted-foreground">
                 {DEPLOY_TIPS[tip]}
               </p>
+              {arenaReady && (
+                <p className="mt-3 text-[10px] uppercase tracking-[0.35em] text-[var(--hud-accent)]">
+                  Dropping in…
+                </p>
+              )}
             </div>
           </div>
         </div>

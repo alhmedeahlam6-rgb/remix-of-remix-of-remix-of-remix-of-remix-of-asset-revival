@@ -179,6 +179,7 @@ export default function TouchControls({
   const [stickActive, setStickActive] = useState(false);
   const [stickPosition, setStickPosition] = useState({ x: 0, y: 0 });
   const [sprintLock, setSprintLock] = useState(false);
+  const [firing, setFiring] = useState(false);
 
   const stickRef = useRef<HTMLDivElement>(null);
   const stickPointerRef = useRef<number | null>(null);
@@ -313,10 +314,10 @@ export default function TouchControls({
         </button>
       </ControlWrap>
 
-      <ControlWrap {...wrap} id="stick" anchor="bottom-6 left-6" origin="bottom left">
+      <ControlWrap {...wrap} id="stick" anchor="bottom-8 left-8" origin="bottom left">
         <div
           ref={stickRef}
-          className={`${editing ? "" : "pointer-events-auto"} relative h-[190px] w-[190px] touch-none rounded-full`}
+          className={`${editing ? "" : "pointer-events-auto"} relative h-[210px] w-[210px] touch-none rounded-full`}
           onPointerDown={
             editing
               ? undefined
@@ -334,13 +335,13 @@ export default function TouchControls({
           onContextMenu={(event) => event.preventDefault()}
         >
           <div className={`absolute inset-5 rounded-full border-2 bg-black/30 backdrop-blur-sm ${stickActive ? "border-[var(--hud-accent)]/70" : "border-white/20"}`}>
-            <span className="absolute left-1/2 top-2 -translate-x-1/2 text-[11px] text-white/40">▲</span>
-            <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-white/40">▼</span>
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-white/40">◀</span>
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-white/40">▶</span>
+            <span className="absolute left-1/2 top-3 -translate-x-1/2 text-[11px] text-white/40">▲</span>
+            <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[11px] text-white/40">▼</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/40">◀</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-white/40">▶</span>
           </div>
           <div
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[68px] w-[68px] rounded-full border border-white/30 bg-white/20 shadow-lg backdrop-blur-sm"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[76px] w-[76px] rounded-full border border-white/30 bg-white/20 shadow-lg backdrop-blur-sm"
             style={{ transform: `translate(calc(-50% + ${stickPosition.x}px), calc(-50% + ${stickPosition.y}px))` }}
           />
         </div>
@@ -395,10 +396,10 @@ export default function TouchControls({
         </button>
       </ControlWrap>
 
-      <ControlWrap {...wrap} id="fire" anchor="bottom-6 right-[92px]" origin="bottom right">
+      <ControlWrap {...wrap} id="fire" anchor="bottom-8 right-8" origin="bottom right">
         <button
           aria-label="Fire"
-          className={`${disc} h-[88px] w-[88px] border-white/35 bg-white/10`}
+          className={`${disc} h-[104px] w-[104px] border-white/35 bg-white/10 ${firing ? "scale-95 bg-white/20 ring-2 ring-[var(--hud-accent)]" : ""}`}
           onPointerDown={
             editing
               ? undefined
@@ -407,14 +408,21 @@ export default function TouchControls({
                   event.stopPropagation();
                   if (firePointerRef.current !== null) return;
                   firePointerRef.current = event.pointerId;
+                  setFiring(true);
                   onShootStart();
                 }
           }
-          onPointerUp={(event) => releaseFire(event.pointerId)}
-          onPointerCancel={(event) => releaseFire(event.pointerId)}
+          onPointerUp={(event) => {
+            setFiring(false);
+            releaseFire(event.pointerId);
+          }}
+          onPointerCancel={(event) => {
+            setFiring(false);
+            releaseFire(event.pointerId);
+          }}
           onContextMenu={(event) => event.preventDefault()}
         >
-          <img src={fistIcon} alt="" className={`h-11 w-11 ${glyph}`} />
+          <img src={fistIcon} alt="" className={`h-12 w-12 ${glyph}`} />
         </button>
       </ControlWrap>
 
