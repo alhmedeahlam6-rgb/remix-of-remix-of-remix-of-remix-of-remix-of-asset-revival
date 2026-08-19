@@ -3591,19 +3591,28 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     canvas?.requestPointerLock?.();
   };
 
-  /** The shell (splash → lobby → deploy) starts the match once the map is ready. */
+  /** The shell (splash → lobby → deploy) shows a Start Match button once the map is ready. */
   const startedRef = useRef(false);
+  const [readyToStart, setReadyToStart] = useState(false);
   useEffect(() => {
     if (status || startedRef.current) return;
+    setReadyToStart(true);
+    onReady?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  const startMatchNow = useCallback(() => {
+    if (startedRef.current) return;
     startedRef.current = true;
+    setReadyToStart(false);
     const cfg = settingsRef.current.quickMatch ? MATCH_CONFIG.quick : MATCH_CONFIG.standard;
     setMatchConfig(cfg);
     matchConfigRef.current = cfg;
     startMatchRef.current?.();
     setMode("walk");
-    onReady?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+    const canvas = mountRef.current?.querySelector("canvas");
+    canvas?.requestPointerLock?.();
+  }, []);
 
 
   useEffect(() => {
