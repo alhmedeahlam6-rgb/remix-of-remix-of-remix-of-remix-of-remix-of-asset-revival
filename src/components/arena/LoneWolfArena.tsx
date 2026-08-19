@@ -1198,6 +1198,11 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       f.hp = MAX_HP;
       f.respawnIn = 0;
       f.cooldown = 0.8 + Math.random() * 1.2;
+      if (f.ai) {
+        // fresh brain on respawn, and pick up any difficulty change mid-match
+        const prof = settingsRef.current.botDifficulty;
+        f.ai = createBotBrain(prof, f.ai.preferredRange);
+      }
       f.pos.copy(f.home.top);
       const gy = groundAt(f.pos.x, f.pos.z, f.pos.y + 0.5, 1.0);
       if (gy !== null) f.pos.y = gy;
