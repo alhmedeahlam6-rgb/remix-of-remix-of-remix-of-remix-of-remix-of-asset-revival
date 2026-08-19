@@ -139,7 +139,7 @@ export default function GameShell() {
                   onClick={() => setPhase("lobby")}
                   className="rounded-full border border-[var(--hud-accent)]/60 bg-background/40 px-12 py-3 text-[11px] font-bold uppercase tracking-[0.5em] text-foreground backdrop-blur transition hover:bg-[var(--hud-accent)] hover:text-[var(--hud-accent-foreground)] active:scale-95"
                 >
-                  Enter
+                  Enter arena
                 </button>
               ) : (
                 <p className="animate-pulse text-[10px] uppercase tracking-[0.5em] text-muted-foreground">
@@ -149,10 +149,11 @@ export default function GameShell() {
             </div>
             <div className="w-full max-w-md">
               <ProgressBar value={progress} />
-              <div className="mt-3 flex items-center justify-between text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-                <span>{loaded ? "Assets cached" : "Streaming assets"}</span>
-                <span className="tabular-nums">{Math.round(progress * 100)}%</span>
-              </div>
+              {loaded && (
+                <p className="mt-3 text-center text-[10px] uppercase tracking-[0.35em] text-[var(--hud-accent)]">
+                  Tap Enter to start
+                </p>
+              )}
             </div>
           </div>
         </div>
