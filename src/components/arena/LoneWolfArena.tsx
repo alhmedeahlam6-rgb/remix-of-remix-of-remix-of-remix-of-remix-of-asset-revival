@@ -3785,8 +3785,14 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
 
       {status && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs uppercase tracking-[0.3em] text-muted-foreground">
-          {status}
+        <div className="pointer-events-none absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm">
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{status}</p>
+          <div className="h-1.5 w-56 overflow-hidden rounded-full bg-foreground/10">
+            <div
+              className="h-full rounded-full transition-[width] duration-200 ease-out"
+              style={{ width: `${Math.round(mapLoadProgress * 100)}%`, background: "var(--gradient-hud)" }}
+            />
+          </div>
         </div>
       )}
 
