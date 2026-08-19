@@ -314,10 +314,10 @@ export default function TouchControls({
         </button>
       </ControlWrap>
 
-      <ControlWrap {...wrap} id="stick" anchor="bottom-6 left-6" origin="bottom left">
+      <ControlWrap {...wrap} id="stick" anchor="bottom-8 left-8" origin="bottom left">
         <div
           ref={stickRef}
-          className={`${editing ? "" : "pointer-events-auto"} relative h-[190px] w-[190px] touch-none rounded-full`}
+          className={`${editing ? "" : "pointer-events-auto"} relative h-[210px] w-[210px] touch-none rounded-full`}
           onPointerDown={
             editing
               ? undefined
@@ -335,13 +335,13 @@ export default function TouchControls({
           onContextMenu={(event) => event.preventDefault()}
         >
           <div className={`absolute inset-5 rounded-full border-2 bg-black/30 backdrop-blur-sm ${stickActive ? "border-[var(--hud-accent)]/70" : "border-white/20"}`}>
-            <span className="absolute left-1/2 top-2 -translate-x-1/2 text-[11px] text-white/40">▲</span>
-            <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-white/40">▼</span>
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-white/40">◀</span>
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-white/40">▶</span>
+            <span className="absolute left-1/2 top-3 -translate-x-1/2 text-[11px] text-white/40">▲</span>
+            <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[11px] text-white/40">▼</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-white/40">◀</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-white/40">▶</span>
           </div>
           <div
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[68px] w-[68px] rounded-full border border-white/30 bg-white/20 shadow-lg backdrop-blur-sm"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[76px] w-[76px] rounded-full border border-white/30 bg-white/20 shadow-lg backdrop-blur-sm"
             style={{ transform: `translate(calc(-50% + ${stickPosition.x}px), calc(-50% + ${stickPosition.y}px))` }}
           />
         </div>
