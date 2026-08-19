@@ -10,7 +10,7 @@ Last full audit: 2026-08-19.
 - Single route app: `src/routes/index.tsx` mounts `GameShell` — no page navigation, everything is in-canvas.
 - Phase machine: `boot → lobby → deploy → play`, each with its own screen.
 - Asset preloader (`preload.ts`): streams all models, textures and audio with a live progress bar + status label before the lobby unlocks.
-- Deploy splash: holds until the 3D map is fully built, with a minimum time so it never flickers.
+- Deploy splash: holds until the 3D map is fully built, with a minimum time so it never flickers; now shows percentage readout and extra mobile tips.
 - Loading tips: 4 rotating gameplay hints cycling every 3.2s on the deploy screen.
 - Orientation gate: asks mobile players to rotate to landscape before playing.
 - Brand mark, splash key art and lobby backdrop images.
