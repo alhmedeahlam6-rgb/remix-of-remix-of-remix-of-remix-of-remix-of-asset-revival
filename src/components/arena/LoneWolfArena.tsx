@@ -3165,8 +3165,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         forward = -0.9;
         strafe = brain.strafeDir * prof.strafe * 0.8;
       } else {
-        // hunt: walk to the last known position, then wander around it
-        const goal = brain.lastSeen ?? bestTarget.home.top;
+        // hunt: walk to the last known position or a decoy bait, then wander around it
+        const goal = brain.decoyAttract ?? brain.lastSeen ?? bestTarget.home.top;
         const away = goal.clone().sub(f.pos);
         away.y = 0;
         if (away.length() > 2.5) {
