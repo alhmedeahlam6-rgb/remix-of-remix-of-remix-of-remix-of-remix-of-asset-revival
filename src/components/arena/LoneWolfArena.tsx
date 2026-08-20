@@ -3358,6 +3358,24 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       bombSystem.update(dt);
       explosionFx.update(dt);
       updateBombPreview();
+      const nowSec = now / 1000;
+      if (safeZoneRef.current && matchRef.current.phase === "round") {
+        updateSafeZone(safeZoneRef.current, nowSec, dt);
+        safeZoneVisual.mesh.visible = true;
+        safeZoneVisual.mesh.scale.setScalar(safeZoneRef.current.currentRadius);
+        for (const f of fighters) {
+          if (!f.alive) continue;
+          const zoneDmg = damageOutsideZone(safeZoneRef.current, f.pos, dt);
+          if (zoneDmg > 0) {
+            damage(f, zoneDmg, f); // self-damage from the storm
+            if (f.isHuman && f.hp > 0) {
+              // brief red vignette handled by damage() already
+            }
+          }
+        }
+      } else {
+        safeZoneVisual.mesh.visible = false;
+      }
       tickMushrooms(dt);
       // decoys: spin, bark fake shots, expire
       for (let i = decoys.length - 1; i >= 0; i--) {
