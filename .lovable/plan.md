@@ -114,12 +114,12 @@
 - X Frag Grenades: Explosives with a cook timer.
 - X Flashbangs: Blinds enemies (screen goes white).
 - X Smoke Grenades: Creates a cloud to block vision.
-- Decoy Grenades: Fake gunshot sounds and a red dot on the enemy minimap.
+- X Decoy Grenades: Fake gunshot sounds and a red dot on the enemy minimap.
 - EP (Energy Points) System: Yellow bar above HP that slowly converts to HP.
 - Mushrooms: Ground pickup, few seconds to eat, provides EP.
 - Inhalers: Used while running for instant small HP and EP.
 - Medkits: Stand still 3 seconds to heal a large chunk of HP.
-- Treatment Gun/Sniper: Heals teammates when shot, hurts enemies.
+- X Treatment Gun/Sniper: Heals teammates when shot, hurts enemies.
 
 ## Phase 7: Map Dynamics & Vehicles
 - Vending Machines: Spend FF Coins for guns, ammo, or revive cards.
