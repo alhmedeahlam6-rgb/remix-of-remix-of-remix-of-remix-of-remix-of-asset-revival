@@ -241,6 +241,9 @@ export const RESERVE_AMMO: Record<string, number> = {
   deagle: 21,
   knife: 0,
   fists: 0,
+  pan: 0,
+  bat: 0,
+  katana: 0,
 };
 
 export function getReserveAmmo(id: string | null) {
