@@ -87,6 +87,7 @@ import {
   rerollStrafe,
   rollBurst,
   rollPause,
+  attractToDecoy,
   type BotBrain,
 } from "./botAi";
 
