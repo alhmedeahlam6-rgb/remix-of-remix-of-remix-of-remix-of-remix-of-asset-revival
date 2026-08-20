@@ -1207,7 +1207,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     const heal = (target: Fighter, amount: number) => {
       if (!target.alive) return;
       target.hp = Math.min(MAX_HP, target.hp + Math.round(amount));
-      if (target.isHuman) sync Hud();
+      if (target.isHuman) syncHud();
     };
 
     /** Floating damage number at the world-space hit point. */
