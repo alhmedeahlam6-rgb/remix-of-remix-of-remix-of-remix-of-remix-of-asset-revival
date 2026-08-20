@@ -162,6 +162,16 @@ export default function Minimap({ radarRef, mapRef, imageRef }: Props) {
         }
       }
 
+      // decoy markers: pulse as enemy dots to bait the opposing team
+      for (const d of st.decoys) {
+        const [mx, mz] = toMap(d.x, d.z);
+        const pulse = 0.6 + 0.4 * Math.sin(performance.now() * 0.008);
+        ctx.fillStyle = d.team === "blue" ? "rgba(142,227,109,0.85)" : "#ff3b1f";
+        ctx.beginPath();
+        ctx.arc(mx, mz, 2.5 + pulse, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       // player heading arrow
       if (st.player) {
         const [px, pz] = toMap(st.player.x, st.player.z);
