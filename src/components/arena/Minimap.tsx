@@ -9,6 +9,8 @@ export type RadarState = {
     isHuman: boolean;
   }[];
   player: { x: number; z: number; yaw: number } | null;
+  /** active decoy markers, shown as enemy dots to the opposite team */
+  decoys: { x: number; z: number; team: "blue" | "red"; ttl: number }[];
 };
 
 /**
