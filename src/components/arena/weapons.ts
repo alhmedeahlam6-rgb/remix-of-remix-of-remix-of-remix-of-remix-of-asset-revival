@@ -149,6 +149,7 @@ const BEHAVIORS: Record<string, WeaponBehavior> = {
   ak47:   { mode: "auto",   interval: 0.100, cycle: 0,    shots: 1, spread: 0.014, recoil: 1.15, zoom: 1.4, sound: "rifle" },   // 600 rpm
   m4a1:   { mode: "auto",   interval: 0.075, cycle: 0,    shots: 1, spread: 0.010, recoil: 0.85, zoom: 1.4, sound: "carbine" }, // 800 rpm
   scar:   { mode: "burst",  interval: 0.060, cycle: 0.30, shots: 3, spread: 0.011, recoil: 1.0,  zoom: 1.4, sound: "rifle" },   // 3-round burst
+  treatment: { mode: "auto", interval: 0.109, cycle: 0, shots: 1, spread: 0.012, recoil: 0.75, zoom: 1.4, sound: "rifle", healsTeammates: true },
   mp40:   { mode: "auto",   interval: 0.055, cycle: 0,    shots: 1, spread: 0.022, recoil: 0.70, zoom: 1.25, sound: "smg" },    // fastest full-auto
   ump:    { mode: "auto",   interval: 0.070, cycle: 0,    shots: 1, spread: 0.018, recoil: 0.65, zoom: 1.25, sound: "smg" },    // 850 rpm
   m1014:  { mode: "single", interval: 0,     cycle: 0.30, shots: 5, spread: 0.050, recoil: 1.6,  zoom: 1.1, sound: "shotgun" }, // semi-auto, 5 pellets
