@@ -106,6 +106,9 @@ export const DAMAGE_PROFILES: Record<string, DamageProfile> = {
   deagle: { body: [40, 72],   head: [100, 160], falloffStart: 0.3 },
   knife:  { body: [90, 110],  head: [150, 200], falloffStart: 1 },
   fists:  { body: [28, 34],   head: [48, 60],   falloffStart: 1 },
+  pan:    { body: [75, 95],   head: [120, 150], falloffStart: 1 },
+  bat:    { body: [68, 88],   head: [110, 140], falloffStart: 1 },
+  katana: { body: [110, 130], head: [180, 220], falloffStart: 1 },
 };
 
 const DEFAULT_PROFILE: DamageProfile = { body: [15, 30], head: [40, 70], falloffStart: 0.35 };
