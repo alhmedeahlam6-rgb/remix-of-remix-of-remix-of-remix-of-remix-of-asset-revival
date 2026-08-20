@@ -12,6 +12,9 @@ import deagle from "@/assets/weapons/deagle.png";
 import knife from "@/assets/weapons/knife.png";
 import fists from "@/assets/weapons/fists.png";
 
+const treatmentSvg =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Crect x='10' y='22' width='80' height='16' rx='2' fill='%23334155'/%3E%3Crect x='70' y='18' width='24' height='24' rx='4' fill='%234ade80'/%3E%3Crect x='90' y='26' width='20' height='8' fill='%236b7280'/%3E%3Cpath d='M78 26h8v8h-8z' fill='white'/%3E%3Cpath d='M76 28h12v4h-12z' fill='white'/%3E%3C/svg%3E";
+
 export type WeaponClass = "Assault" | "SMG" | "Shotgun" | "Sniper" | "Heavy" | "Pistol" | "Melee";
 
 export type Weapon = {
