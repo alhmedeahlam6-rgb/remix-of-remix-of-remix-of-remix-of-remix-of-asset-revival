@@ -19,6 +19,8 @@
 - X Deferred leaderboard fetch until first interaction or 2.5s idle — files: `src/components/arena/LoneWolfArena.tsx`
 - X Richer match summary card with K/D, rounds and prominent Play Again CTA — files: `src/components/arena/LoneWolfArena.tsx`
 - X Larger touch fire/move zones and fire-button press feedback — files: `src/components/arena/TouchControls.tsx`
+- X Bot AI depth: difficulty tiers, tactical state machine, collision-aware movement, firing discipline — files: `src/components/arena/botAi.ts`, `src/components/arena/LoneWolfArena.tsx`, `src/components/arena/settings.ts`, `src/components/arena/SettingsPanel.tsx`
+- X Throwable types (frag/flash/smoke) with per-type fuse, smoke vision blocking for bots, flash blindness for player and bots, G-key + touch chip to cycle — files: `src/components/arena/bomb.ts`, `src/components/arena/smokeCloud.ts`, `src/components/arena/LoneWolfArena.tsx`, `src/components/arena/TouchControls.tsx`
 
 ---
 
@@ -109,9 +111,9 @@
 - Damage Numbers: White for body, Yellow for limbs/armor, Red for headshots.
 - Melee Deflection: Pans, Bats, and Katanas on the back block bullets.
 - Gloo Walls: Deployable temporary cover that absorbs damage and blocks sight.
-- Frag Grenades: Explosives with a cook timer.
-- Flashbangs: Blinds enemies (screen goes white).
-- Smoke Grenades: Creates a cloud to block vision.
+- X Frag Grenades: Explosives with a cook timer.
+- X Flashbangs: Blinds enemies (screen goes white).
+- X Smoke Grenades: Creates a cloud to block vision.
 - Decoy Grenades: Fake gunshot sounds and a red dot on the enemy minimap.
 - EP (Energy Points) System: Yellow bar above HP that slowly converts to HP.
 - Mushrooms: Ground pickup, few seconds to eat, provides EP.
