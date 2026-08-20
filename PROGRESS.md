@@ -51,6 +51,7 @@ Last full audit: 2026-08-19.
 - Magazines and reserve ammo per weapon (e.g. M249 100/200, AWM 5/20).
 - Reload: arcade 0.5s rack for every gun, with auto-reload-when-empty option and dry-fire feedback.
 - Damage profiles: range falloff, headshot multiplier, per-zone damage.
+- Treatment Rifle and Treatment Sniper: shooting teammates restores HP (green tracer + popup), shooting enemies still deals reduced damage.
 - Bullet spread and recoil applied per shot, plus tracers.
 
 ## 6. Combat
