@@ -78,6 +78,7 @@ import {
   getMagazine,
   getReserveAmmo,
   getReloadTime,
+  isDeflectionMelee,
   type Weapon,
 } from "./weapons";
 import {
