@@ -69,6 +69,7 @@ Last full audit: 2026-08-19.
 - Inhalers: instant small HP + EP top-up usable while moving (`F` / touch chip), 2 charges.
 - Mushroom pickups: ground spawns that grant +30 EP on contact and regrow after 25 s.
 - Bot AI (`botAi.ts`): four difficulty tiers (Recruit/Regular/Veteran/Nightmare) scaling reaction, accuracy falloff, damage, headshot chance, move speed, aggression, strafe, burst length and retreat threshold; tactical state machine (hunt / engage / reposition / retreat), collision-aware sliding movement, throttled line-of-sight probes and firing discipline. Enemy skill is selectable in Settings > Gameplay.
+- Safe zone / electrical storm: a shrinking circle that starts covering the arena and damages anyone outside it, forcing fights to a central duel ring.
 - Throwables: frag (5s fuse, 300 dmg), flashbang (1.7s fuse, 16 m blind — whiteout for the player, bots hold fire ~3s), smoke (billboard cloud that blocks bot line of sight for 9s) and decoy (fake gunshots, minimap bait, draws bots). Cycle with `G` on desktop or the chip above the grenade button on touch.
 - Melee deflection: Pan, Titanium Bat and Katana block ~35% of shots that hit the back; available in the shop and on some bots.
 
