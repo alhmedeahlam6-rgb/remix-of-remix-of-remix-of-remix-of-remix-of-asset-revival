@@ -2877,9 +2877,10 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
           const id = `${team.toUpperCase()}_${index + 1}`;
           const weapon = isHuman ? "deagle" : team === "blue" ? "ak47" : index === 0 ? "m4a1" : "ump";
           const rawSidearm = slots[2];
-          const validSidearm = typeof rawSidearm === "string" && ["pan", "bat", "katana", "knife", "fists"].includes(rawSidearm) ? (rawSidearm as string) : null;
           const sidearm: string = isHuman
-            ? (validSidearm ?? "fists")
+            ? typeof rawSidearm === "string" && ["pan", "bat", "katana", "knife", "fists"].includes(rawSidearm)
+              ? rawSidearm
+              : "fists"
             : Math.random() < 0.25
               ? (["pan", "bat", "katana"] as const)[Math.floor(Math.random() * 3)]
               : "knife";
