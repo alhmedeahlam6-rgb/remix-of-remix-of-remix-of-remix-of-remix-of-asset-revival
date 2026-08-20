@@ -179,6 +179,9 @@ const BEHAVIORS: Record<string, WeaponBehavior> = {
   deagle: { mode: "single", interval: 0,     cycle: 0.42, shots: 1, spread: 0.003, recoil: 1.7,  zoom: 1.5, sound: "deagle" },
   knife:  { mode: "melee",  interval: 0,     cycle: 0.45, shots: 1, spread: 0.0,   recoil: 0.3,  zoom: 1, sound: "knife" },
   fists:  { mode: "melee",  interval: 0,     cycle: 0.38, shots: 1, spread: 0.0,   recoil: 0.2,  zoom: 1, sound: "knife" },
+  pan:    { mode: "melee",  interval: 0,     cycle: 0.55, shots: 1, spread: 0.0,   recoil: 0.4,  zoom: 1, sound: "knife" },
+  bat:    { mode: "melee",  interval: 0,     cycle: 0.48, shots: 1, spread: 0.0,   recoil: 0.35, zoom: 1, sound: "knife" },
+  katana: { mode: "melee",  interval: 0,     cycle: 0.65, shots: 1, spread: 0.0,   recoil: 0.45, zoom: 1, sound: "knife" },
 };
 
 
