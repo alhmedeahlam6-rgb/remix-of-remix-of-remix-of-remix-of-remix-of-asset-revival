@@ -26,6 +26,9 @@ type Props = {
   prone: boolean;
   kits: number;
   onHeal: () => void;
+  /** inhalers left; instant HP + EP, usable on the move */
+  inhalers?: number;
+  onUseInhaler?: () => void;
   /** 0..1 while a medkit is being applied */
   healProgress?: number;
   bombs: number;
@@ -163,6 +166,8 @@ export default function TouchControls({
   prone,
   kits,
   onHeal,
+  inhalers,
+  onUseInhaler,
   healProgress = 0,
   bombs,
   bombArmed,
@@ -382,6 +387,16 @@ export default function TouchControls({
             />
           )}
         </button>
+        {onUseInhaler && (
+          <button
+            aria-label="Use inhaler"
+            disabled={(inhalers ?? 0) <= 0 && !editing}
+            className={`absolute -top-2 left-1/2 -translate-x-1/2 rounded-full border border-white/25 bg-black/75 px-2 py-[1px] text-[9px] font-bold tracking-wide text-amber-200 ${(inhalers ?? 0) <= 0 ? "opacity-40" : ""}`}
+            {...tap(() => (inhalers ?? 0) > 0 && onUseInhaler())}
+          >
+            INH {inhalers ?? 0}
+          </button>
+        )}
       </ControlWrap>
 
       <ControlWrap {...wrap} id="bomb" anchor="bottom-[54px] left-[calc(50%+76px)]" origin="bottom center" centerX>

@@ -4522,6 +4522,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
               prone={prone}
               kits={kits}
               onHeal={useHealthKit}
+              inhalers={inhalers}
+              onUseInhaler={() => useInhalerRef.current()}
               healProgress={healProgress}
               bombs={bombs}
               bombArmed={bombArmed}
