@@ -160,6 +160,8 @@ type Fighter = {
   fx: SpawnFx | null;
   /** weapon id used for damage/fire-rate calculations */
   weapon: string;
+  /** sidearm id carried on the back; used for melee deflection checks */
+  sidearm: string | null;
   /** tactical brain — null for the human player */
   ai: BotBrain | null;
 };
