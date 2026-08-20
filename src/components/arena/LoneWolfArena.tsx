@@ -354,8 +354,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   kitPartialRef.current = kitPartial;
   /** 0..1 progress of the medkit currently being applied */
   const [healProgress, setHealProgress] = useState(0);
-  /** throwables per type; frag damages, flash blinds, smoke blocks sight */
-  const [grenades, setGrenades] = useState<Record<GrenadeKind, number>>({ frag: 3, flash: 2, smoke: 2 });
+  /** throwables per type; frag damages, flash blinds, smoke blocks sight, decoy fakes shots */
+  const [grenades, setGrenades] = useState<Record<GrenadeKind, number>>({ frag: 3, flash: 2, smoke: 2, decoy: 2 });
   const [grenadeKind, setGrenadeKind] = useState<GrenadeKind>("frag");
   const grenadeKindRef = useRef<GrenadeKind>(grenadeKind);
   grenadeKindRef.current = grenadeKind;
