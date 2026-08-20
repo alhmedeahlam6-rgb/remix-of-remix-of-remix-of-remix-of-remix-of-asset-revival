@@ -42,6 +42,7 @@ export const WEAPONS: Weapon[] = [
   { id: "ak47", name: "AK47", cls: "Assault", price: 2500, damage: 61, fireRate: 61, range: 72, magazine: 30, image: ak47 },
   { id: "m4a1", name: "M4A1", cls: "Assault", price: 2400, damage: 54, fireRate: 66, range: 70, magazine: 30, image: m4a1 },
   { id: "scar", name: "SCAR", cls: "Assault", price: 2600, damage: 57, fireRate: 60, range: 68, magazine: 30, image: scar },
+  { id: "treatment", name: "TREATMENT RIFLE", cls: "Assault", price: 3200, damage: 38, fireRate: 55, range: 60, magazine: 25, image: treatmentSvg },
   { id: "mp40", name: "MP40", cls: "SMG", price: 1800, damage: 48, fireRate: 95, range: 42, magazine: 40, image: mp40 },
   { id: "ump", name: "UMP", cls: "SMG", price: 1700, damage: 45, fireRate: 80, range: 46, magazine: 30, image: ump },
   { id: "m1014", name: "M1014", cls: "Shotgun", price: 2100, damage: 88, fireRate: 34, range: 20, magazine: 7, image: m1014 },
