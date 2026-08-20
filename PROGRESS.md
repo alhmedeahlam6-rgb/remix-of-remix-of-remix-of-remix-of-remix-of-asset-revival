@@ -45,7 +45,7 @@ Last full audit: 2026-08-19.
 - Collision debug view for development.
 
 ## 5. Weapons
-- 13 weapons: AK47, M4A1, SCAR (Assault), MP40, UMP (SMG), M1014, SPAS12 (Shotgun), AWM, KAR98K (Sniper), M249 (Heavy), Desert Eagle (Pistol), Fists, Combat Knife (Melee).
+- 15 weapons: AK47, M4A1, SCAR, Treatment Rifle (Assault), MP40, UMP (SMG), M1014, SPAS12 (Shotgun), AWM, KAR98K, Treatment Sniper (Sniper), M249 (Heavy), Desert Eagle (Pistol), Fists, Combat Knife (Melee).
 - Per-weapon stats: price, damage, fire rate, range, magazine, shop art.
 - Fire modes: auto, single, bolt-action, melee — each with interval, cycle time, pellet count, spread, recoil and scope zoom.
 - Magazines and reserve ammo per weapon (e.g. M249 100/200, AWM 5/20).
