@@ -83,6 +83,7 @@ export const DAMAGE_PROFILES: Record<string, DamageProfile> = {
   m4a1:   { body: [20, 41],   head: [55, 100],  falloffStart: 0.38 },
   scar:   { body: [19, 39],   head: [52, 95],   falloffStart: 0.38 },
   treatment: { body: [8, 18], head: [12, 28],  falloffStart: 0.45 },
+  treatment_sniper: { body: [14, 32], head: [22, 48], falloffStart: 0.6 },
   mp40:   { body: [13, 33],   head: [37, 62],   falloffStart: 0.28 },
   ump:    { body: [12, 31],   head: [35, 58],   falloffStart: 0.28 },
   m1014:  { body: [10, 26],   head: [18, 44],   falloffStart: 0.22 },
