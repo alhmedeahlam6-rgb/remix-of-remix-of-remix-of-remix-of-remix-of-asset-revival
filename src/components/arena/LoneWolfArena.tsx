@@ -1170,12 +1170,12 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       if (isDeflectionMelee(victim.sidearm)) {
         const toKiller = killer.pos.clone().sub(victim.pos);
         toKiller.y = 0;
-        const facing = new THREE.Vector3(Math.sin(yawRef.current), 0, Math.cos(yawRef.current));
+        const victimYaw = victim.isHuman ? camera.rotation.y : (victim.group?.rotation.y ?? 0);
+        const facing = new THREE.Vector3(Math.sin(victimYaw), 0, Math.cos(victimYaw));
         const behind = toKiller.normalize().dot(facing) > 0.35;
         if (behind && Math.random() < 0.35) {
           playSfxAt("hit", victim.pos.distanceTo(walkPos), 0.6, (Math.random() - 0.5) * 0.1);
-          spawnImpact(victim.pos.clone().add(new THREE.Vector3(0, 1.1, 0)), new THREE.Vector3(0, 1, 0), 0xc0c0c0);
-          setFloatingText(victim.pos.clone().add(new THREE.Vector3(0, 1.6, 0)), "BLOCK", "#a0a0a0", 0.9);
+          spawnImpact(victim.pos.clone().add(new THREE.Vector3(0, 1.1, 0)), new THREE.Color(0xc0c0c0));
           return;
         }
       }
