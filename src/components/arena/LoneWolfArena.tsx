@@ -3258,6 +3258,26 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       explosionFx.update(dt);
       updateBombPreview();
       tickMushrooms(dt);
+      // decoys: spin, bark fake shots, expire
+      for (let i = decoys.length - 1; i >= 0; i--) {
+        const d = decoys[i]!;
+        d.ttl -= dt;
+        d.nextBark -= dt;
+        d.root.rotation.y += dt * 4;
+        if (d.nextBark <= 0) {
+          d.nextBark = DECOY_BARK_INTERVAL * (0.8 + Math.random() * 0.6);
+          playSfxAt("rifle", d.root.position.distanceTo(camera.position), 0.55, (Math.random() - 0.5) * 0.15);
+          // small muzzle flash
+          const barkLight = new THREE.PointLight(0xffaa55, 6, 5, 1);
+          barkLight.position.copy(d.root.position).add(new THREE.Vector3(0, 0.5, 0));
+          root.add(barkLight);
+          window.setTimeout(() => root.remove(barkLight), 60);
+        }
+        if (d.ttl <= 0) {
+          decoyGroup.remove(d.root);
+          decoys.splice(i, 1);
+        }
+      }
       // EP slowly converts into HP whenever the player is hurt
       if (human && human.alive && epRef.current > 0 && human.hp < MAX_HP) {
         const amount = Math.min(epRef.current, EP_TO_HP_RATE * dt);
