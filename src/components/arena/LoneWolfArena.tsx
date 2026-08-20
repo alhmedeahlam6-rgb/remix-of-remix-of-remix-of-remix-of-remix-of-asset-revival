@@ -1701,6 +1701,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         positions[5] = end.z;
         posAttr.needsUpdate = true;
 
+        laser.material.color.setHex(healBeam ? 0x4ade80 : 0xffe08a);
+        laser.sparkMesh.material.color.setHex(healBeam ? 0x4ade80 : 0xffe08a);
+        laser.spark.color.setHex(healBeam ? 0x4ade80 : 0xffa040);
         laser.sparkMesh.position.copy(end);
         laser.sparkMesh.visible = true;
         laser.spark.position.copy(end);
