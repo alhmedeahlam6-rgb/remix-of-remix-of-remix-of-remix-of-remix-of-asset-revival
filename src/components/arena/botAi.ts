@@ -153,6 +153,8 @@ export type BotBrain = {
   /** throttles the expensive line-of-sight raycast */
   losTimer: number;
   losClear: boolean;
+  /** seconds of flashbang blindness left; bots hold fire while blinded */
+  blindLeft: number;
 };
 
 const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
@@ -173,6 +175,7 @@ export function createBotBrain(difficulty: BotDifficulty, preferredRange: number
     preferredRange,
     losTimer: 0,
     losClear: false,
+    blindLeft: 0,
   };
 }
 

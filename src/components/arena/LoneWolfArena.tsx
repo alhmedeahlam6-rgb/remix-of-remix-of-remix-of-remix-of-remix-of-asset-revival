@@ -1979,9 +1979,42 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     /* ---- thrown bomb (fixed 5s fuse) ---- */
     const explosionFx = createExplosionFx(BOMB_RADIUS);
     scene.add(explosionFx.group);
+    const smokeField = createSmokeField(initialQuality === "low" ? 0.5 : 1);
+    scene.add(smokeField.group);
     const bombSystem: BombSystem = createBombSystem({
       groundAt: (x, z, fromY, maxRise) => groundAt(x, z, fromY, maxRise ?? 4),
-      onExplode: (at) => {
+      onExplode: (at, kind) => {
+        if (kind === "smoke") {
+          smokeField.spawn(at);
+          playSfx("equip", 0.8, -0.5);
+          return;
+        }
+        if (kind === "flash") {
+          playSfx("land", 1, 0.6);
+          const bang = new THREE.PointLight(0xffffff, 90, 40, 2);
+          bang.position.copy(at).add(new THREE.Vector3(0, 1, 0));
+          root.add(bang);
+          window.setTimeout(() => root.remove(bang), 110);
+          shakeRef.current = Math.max(shakeRef.current, 0.35);
+          // player blindness scales with distance and whether they were looking at it
+          if (human && human.alive) {
+            const eye = walkPos.clone().setY(walkPos.y + EYE_HEIGHT);
+            const d = eye.distanceTo(at);
+            if (d < FLASH_RADIUS && castFirst(eye, at.clone().sub(eye).normalize(), Math.max(0.1, d - 0.4)) === null) {
+              const look = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)).normalize();
+              const toBang = at.clone().sub(eye).setY(0).normalize();
+              const facing = Math.max(0, look.dot(toBang));
+              flashRef.current = Math.max(flashRef.current, (1 - d / FLASH_RADIUS) * (0.35 + 0.65 * facing));
+            }
+          }
+          for (const f of fighters) {
+            if (!f.alive || f.isHuman || !f.ai) continue;
+            const d = f.pos.distanceTo(at);
+            if (d > FLASH_RADIUS) continue;
+            f.ai.blindLeft = Math.max(f.ai.blindLeft, 3.2 * (1 - d / FLASH_RADIUS));
+          }
+          return;
+        }
         playSfx("land", 1, -0.55);
         playSfx("kill", 0.7, -0.4);
         playSfx("shotgun", 0.9, -0.5);
@@ -2111,7 +2144,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       arcLine.visible = false;
       landMarker.visible = false;
       const { dir, from, speed } = bombOrigin();
-      bombSystem.throwBomb(from, dir, speed);
+      bombSystem.throwBomb(from, dir, speed, grenadeKindRef.current);
       playSfx("equip", 0.7, 0.5);
       onBombThrownRef.current();
     };
@@ -2911,6 +2944,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       const brain = f.ai;
       if (!brain) return;
       const prof = BOT_PROFILES[brain.difficulty];
+      if (brain.blindLeft > 0) brain.blindLeft -= dt;
 
       // keep bots planted on the ground
       const nextProbe = (botGroundTimers.get(f.id) ?? 0) - dt;
@@ -2964,7 +2998,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       brain.losTimer -= dt;
       if (brain.losTimer <= 0) {
         brain.losTimer = 0.12 + Math.random() * 0.08;
-        brain.losClear = castFirst(eye, dir, Math.max(0.1, dist - 0.4)) === null;
+        brain.losClear =
+          castFirst(eye, dir, Math.max(0.1, dist - 0.4)) === null && !smokeField.blocks(eye, aim);
         if (brain.losClear) {
           brain.lastSeen = targetPos.clone();
         }
@@ -3041,6 +3076,11 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       const botWeaponName = bw?.name ?? "Rifle";
 
       // ---- firing discipline: reaction delay, bursts, pauses
+      if (brain.blindLeft > 0) {
+        // flashed: stumble, hold fire
+        brain.reactionLeft = Math.max(brain.reactionLeft, prof.reaction);
+        return;
+      }
       if (!visible || dist > botRange) {
         brain.reactionLeft = Math.min(brain.reactionLeft + dt * 0.5, prof.reaction);
         return;
@@ -3709,6 +3749,13 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         weatherApply?.(weather.flash(), weatherWet);
       }
       skybox?.update(camera.position, dt);
+      smokeField.update(dt);
+      if (flashRef.current > 0) {
+        flashRef.current = Math.max(0, flashRef.current - dt * 0.42);
+        if (flashElRef.current) flashElRef.current.style.opacity = String(Math.min(1, flashRef.current));
+      } else if (flashElRef.current && flashElRef.current.style.opacity !== "0") {
+        flashElRef.current.style.opacity = "0";
+      }
       renderer.render(scene, camera);
 
     };
@@ -3721,6 +3768,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
     return () => {
       disposed = true;
+      smokeField.clear();
       skybox?.dispose();
       skybox = null;
       weather?.dispose();
@@ -3906,6 +3954,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       }
       if (e.code === "Escape") actionsRef.current?.cancelWall();
       if (is("shop") && matchRef.current.phase === "countdown") setShopOpen((v) => !v);
+      if (e.code === "KeyG") cycleGrenadeRef.current();
       if (e.code === "Backquote") setShowDebug((v) => !v);
       if (e.code === "Digit1" || e.code === "Digit2" || e.code === "Digit3" || e.code === "Digit4") {
         const i = Number(e.code.slice(5)) - 1;
