@@ -1643,9 +1643,13 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         raycaster.set(origin, pelletDir);
         raycaster.far = weaponRange;
         const botHits = raycaster.intersectObjects(enemyMeshes(human.team), false);
+        const friendlyHits = behavior.healsTeammates
+          ? raycaster.intersectObjects(friendlyMeshes(human.team), false)
+          : [];
 
         const worldDist = worldHits[0]?.distance ?? Infinity;
         const botDist = botHits[0]?.distance ?? Infinity;
+        const friendDist = friendlyHits[0]?.distance ?? Infinity;
 
 
         const laser = laserRef.current;
@@ -1658,8 +1662,20 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
         let end: THREE.Vector3;
         let hitBot = false;
+        let healBeam = false;
         const botHit = botHits[0];
-        if (botDist < worldDist && botHit) {
+        const friendHit = friendlyHits[0];
+        if (behavior.healsTeammates && friendDist < worldDist && friendDist < botDist && friendHit) {
+          end = friendHit.point.clone();
+          const target = fighterByMesh(friendHit.object);
+          if (target) {
+            const amt = Math.round(getWeaponDamageAt(w, friendHit.distance, false) * 1.6);
+            heal(target, amt);
+            spawnDamagePopup(end, amt, false);
+            healBeam = true;
+            anyHit = true;
+          }
+        } else if (botDist < worldDist && botHit) {
           end = botHit.point.clone();
           const victim = fighterByMesh(botHit.object);
           if (victim) {
