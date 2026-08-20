@@ -3927,6 +3927,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     return () => {
       disposed = true;
       scene.remove(mushroomGroup);
+      scene.remove(decoyGroup);
+      for (const d of decoys) decoyGroup.remove(d.root);
+      decoys.length = 0;
       smokeField.clear();
       skybox?.dispose();
       skybox = null;
