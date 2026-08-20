@@ -109,7 +109,7 @@
 - Full Control: Aim assist completely disabled.
 - Crosshair Bloom: Reticle widens the longer you hold the trigger.
 - Damage Numbers: White for body, Yellow for limbs/armor, Red for headshots.
-- Melee Deflection: Pans, Bats, and Katanas on the back block bullets.
+- X Melee Deflection: Pans, Bats, and Katanas on the back block bullets.
 - Gloo Walls: Deployable temporary cover that absorbs damage and blocks sight.
 - X Frag Grenades: Explosives with a cook timer.
 - X Flashbangs: Blinds enemies (screen goes white).
