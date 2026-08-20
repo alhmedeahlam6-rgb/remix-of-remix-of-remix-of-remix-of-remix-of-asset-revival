@@ -189,6 +189,7 @@ export const MAGAZINES: Record<string, number> = {
   m4a1: 30,
   scar: 30,
   treatment: 25,
+  treatment_sniper: 5,
   mp40: 40,
   ump: 30,
   m1014: 7,
