@@ -2053,6 +2053,26 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     scene.add(explosionFx.group);
     const smokeField = createSmokeField(initialQuality === "low" ? 0.5 : 1);
     scene.add(smokeField.group);
+    /** active decoys: fake gunshot sources that draw bot attention and minimap dots */
+    type Decoy = { root: THREE.Group; ttl: number; nextBark: number; team: Team };
+    const decoys: Decoy[] = [];
+    const decoyMat = new THREE.MeshStandardMaterial({ color: 0x8ee36d, emissive: 0x4aa02c, emissiveIntensity: 0.6 });
+    const decoyGroup = new THREE.Group();
+    scene.add(decoyGroup);
+    const spawnDecoy = (at: THREE.Vector3, team: Team) => {
+      const root = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.35, 8), decoyMat);
+      body.position.y = 0.18;
+      const dish = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.12, 12), decoyMat);
+      dish.position.y = 0.42;
+      root.add(body, dish);
+      root.position.copy(at);
+      decoyGroup.add(root);
+      const light = new THREE.PointLight(0x8ee36d, 2.5, 7, 2);
+      light.position.set(0, 0.6, 0);
+      root.add(light);
+      decoys.push({ root, ttl: DECOY_LIFE, nextBark: 0.2 + Math.random() * 0.4, team });
+    };
     const bombSystem: BombSystem = createBombSystem({
       groundAt: (x, z, fromY, maxRise) => groundAt(x, z, fromY, maxRise ?? 4),
       onExplode: (at, kind) => {
@@ -2085,6 +2105,11 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
             if (d > FLASH_RADIUS) continue;
             f.ai.blindLeft = Math.max(f.ai.blindLeft, 3.2 * (1 - d / FLASH_RADIUS));
           }
+          return;
+        }
+        if (kind === "decoy") {
+          spawnDecoy(at, human?.team ?? "blue");
+          playSfx("equip", 0.7, 0.2);
           return;
         }
         playSfx("land", 1, -0.55);
