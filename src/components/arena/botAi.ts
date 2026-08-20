@@ -180,7 +180,15 @@ export function createBotBrain(difficulty: BotDifficulty, preferredRange: number
     losTimer: 0,
     losClear: false,
     blindLeft: 0,
+    decoyAttract: null,
+    decoyAttractLeft: 0,
   };
+}
+
+/** bait this bot toward a decoy position for a few seconds */
+export function attractToDecoy(brain: BotBrain, pos: THREE.Vector3, duration = 3.5) {
+  brain.decoyAttract = pos.clone();
+  brain.decoyAttractLeft = Math.max(brain.decoyAttractLeft, duration);
 }
 
 /** roll a fresh burst length for this profile */
