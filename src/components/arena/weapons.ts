@@ -18,6 +18,15 @@ const treatmentSvg =
 const treatmentSniperSvg =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 50'%3E%3Crect x='5' y='20' width='100' height='10' rx='2' fill='%23334155'/%3E%3Crect x='90' y='15' width='35' height='20' rx='3' fill='%234ade80'/%3E%3Crect x='125' y='22' width='12' height='6' fill='%236b7280'/%3E%3Cpath d='M98 20h8v10h-8z' fill='white'/%3E%3Cpath d='M96 23h12v4h-12z' fill='white'/%3E%3C/svg%3E";
 
+const panSvg =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='28' fill='none' stroke='%239ca3af' stroke-width='8'/%3E%3Ccircle cx='40' cy='40' r='20' fill='%236b7280'/%3E%3Crect x='54' y='54' width='22' height='8' rx='2' fill='%234b5563' transform='rotate(45 65 58)'/%3E%3C/svg%3E";
+
+const batSvg =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'%3E%3Crect x='10' y='14' width='70' height='12' rx='3' fill='%23d97706'/%3E%3Crect x='75' y='12' width='18' height='16' rx='2' fill='%239ca3af'/%3E%3C/svg%3E";
+
+const katanaSvg =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40'%3E%3Cpath d='M10 28 Q60 8 110 12 L108 16 Q60 14 14 32 Z' fill='%23e2e8f0'/%3E%3Crect x='105' y='10' width='10' height='20' rx='1' fill='%234b5563'/%3E%3C/svg%3E";
+
 export type WeaponClass = "Assault" | "SMG" | "Shotgun" | "Sniper" | "Heavy" | "Pistol" | "Melee";
 
 export type Weapon = {
