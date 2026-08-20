@@ -3056,6 +3056,10 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         botGroundTimers.set(f.id, nextProbe);
       }
 
+      // ---- decoy bait timer
+      if (brain.decoyAttractLeft > 0) brain.decoyAttractLeft -= dt;
+      if (brain.decoyAttractLeft <= 0) brain.decoyAttract = null;
+
       // ---- target selection: nearest living enemy, sticky to the current one
       let bestTarget: Fighter | null = null;
       let bestDist = Infinity;
@@ -3071,9 +3075,30 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         }
       }
 
+      // enemy decoys draw bots that can hear them; closer/smarter bots fall for it longer
+      if (bestDist > 18) {
+        for (const d of decoys) {
+          if (d.team === f.team) continue;
+          const distToDecoy = d.root.position.distanceTo(f.pos);
+          if (distToDecoy < 55 && Math.random() < 0.35) {
+            attractToDecoy(brain, d.root.position, 2.5 + Math.random() * 2);
+            break;
+          }
+        }
+      }
+
       if (!bestTarget) {
         brain.state = "hunt";
         brain.targetId = null;
+        if (brain.decoyAttract) {
+          const goal = brain.decoyAttract;
+          const away = goal.clone().sub(f.pos);
+          away.y = 0;
+          if (away.length() > 2.5) {
+            away.normalize();
+            moveBot(f, away.x * prof.moveSpeed * 0.8 * dt, away.z * prof.moveSpeed * 0.8 * dt);
+          }
+        }
         f.group.position.copy(f.pos);
         return;
       }
