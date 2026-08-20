@@ -3814,6 +3814,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
           isHuman: f.isHuman,
         })),
         player: human ? { x: walkPos.x, z: walkPos.z, yaw } : null,
+        decoys: decoys.map((d) => ({ x: d.root.position.x, z: d.root.position.z, team: d.team, ttl: d.ttl })),
       };
 
       if (damageFlashRef.current > 0) {
