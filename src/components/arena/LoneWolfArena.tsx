@@ -116,6 +116,10 @@ const STEP_UP = 0.55; // anything taller must be jumped
 const GRAVITY = 24;
 const JUMP_SPEED = 8.2;
 const MAX_HP = 200;
+/** cap of the Energy Point reserve */
+const MAX_EP = 100;
+/** EP converted into HP per second while the player is hurt */
+const EP_TO_HP_RATE = 3;
 const PLAYER_DAMAGE = 34;
 const BOT_DAMAGE = 16;
 const RESPAWN_SECONDS = 3;
@@ -336,6 +340,15 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   const [prone, setProne] = useState(false);
   const [kits, setKits] = useState(3);
   /** fraction (0..1) left in the partially used medkit at the top of the stack */
+  /** Energy Points: yellow reserve that trickles back into HP over time */
+  const [ep, setEp] = useState(0);
+  const epRef = useRef(0);
+  epRef.current = ep;
+  /** inhalers: instant small HP + EP, usable on the move */
+  const [inhalers, setInhalers] = useState(2);
+  const inhalersRef = useRef(2);
+  inhalersRef.current = inhalers;
+  const useInhalerRef = useRef(() => {});
   const [kitPartial, setKitPartial] = useState(1);
   const kitPartialRef = useRef(1);
   kitPartialRef.current = kitPartial;
@@ -1976,12 +1989,104 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       }
     };
 
+    /* ---- inhaler: instant top-up, works while sprinting ---- */
+    const useInhaler = () => {
+      if (!human || !human.alive) return;
+      if (inhalersRef.current <= 0) return;
+      if (human.hp >= MAX_HP && epRef.current >= MAX_EP) return;
+      human.hp = Math.min(MAX_HP, human.hp + 25);
+      setInhalers((n) => Math.max(0, n - 1));
+      setEp((e) => Math.min(MAX_EP, e + 50));
+      playSfx("medkit", 0.7, 0.4);
+      syncHud();
+    };
+    useInhalerRef.current = useInhaler;
+
+    /* ---- mushrooms: ground pickups that grant EP ---- */
+    const mushroomGroup = new THREE.Group();
+    scene.add(mushroomGroup);
+    type Mushroom = { mesh: THREE.Object3D; cooldown: number; base: THREE.Vector3 };
+    const mushrooms: Mushroom[] = [];
+    const capMat = new THREE.MeshStandardMaterial({ color: 0xf2c14e, roughness: 0.7 });
+    const stemMat = new THREE.MeshStandardMaterial({ color: 0xe8e2d0, roughness: 0.9 });
+    const spawnMushroom = (at: THREE.Vector3) => {
+      const g = new THREE.Group();
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), capMat);
+      cap.position.y = 0.26;
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.26, 8), stemMat);
+      stem.position.y = 0.13;
+      g.add(cap, stem);
+      g.position.copy(at);
+      mushroomGroup.add(g);
+      mushrooms.push({ mesh: g, cooldown: 0, base: at.clone() });
+    };
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 + Math.random();
+      const r = 12 + Math.random() * 22;
+      const x = Math.cos(a) * r;
+      const z = Math.sin(a) * r;
+      const gy = groundAt(x, z, 12, 24);
+      if (gy === null) continue;
+      spawnMushroom(new THREE.Vector3(x, gy + 0.02, z));
+    }
+    /** walk over a mushroom to eat it: +30 EP, regrows after 25 s */
+    const tickMushrooms = (dt: number) => {
+      const t = performance.now() * 0.002;
+      for (const m of mushrooms) {
+        if (m.cooldown > 0) {
+          m.cooldown -= dt;
+          if (m.cooldown <= 0) m.mesh.visible = true;
+          continue;
+        }
+        m.mesh.position.y = m.base.y + Math.sin(t + m.base.x) * 0.03;
+        if (!human || !human.alive) continue;
+        if (walkPos.distanceTo(m.base) > 1.1) continue;
+        m.cooldown = 25;
+        m.mesh.visible = false;
+        setEp((e) => Math.min(MAX_EP, e + 30));
+        playSfx("buy", 0.5, 0.6);
+      }
+    };
+
     /* ---- thrown bomb (fixed 5s fuse) ---- */
     const explosionFx = createExplosionFx(BOMB_RADIUS);
     scene.add(explosionFx.group);
+    const smokeField = createSmokeField(initialQuality === "low" ? 0.5 : 1);
+    scene.add(smokeField.group);
     const bombSystem: BombSystem = createBombSystem({
       groundAt: (x, z, fromY, maxRise) => groundAt(x, z, fromY, maxRise ?? 4),
-      onExplode: (at) => {
+      onExplode: (at, kind) => {
+        if (kind === "smoke") {
+          smokeField.spawn(at);
+          playSfx("equip", 0.8, -0.5);
+          return;
+        }
+        if (kind === "flash") {
+          playSfx("land", 1, 0.6);
+          const bang = new THREE.PointLight(0xffffff, 90, 40, 2);
+          bang.position.copy(at).add(new THREE.Vector3(0, 1, 0));
+          root.add(bang);
+          window.setTimeout(() => root.remove(bang), 110);
+          shakeRef.current = Math.max(shakeRef.current, 0.35);
+          // player blindness scales with distance and whether they were looking at it
+          if (human && human.alive) {
+            const eye = walkPos.clone().setY(walkPos.y + EYE_HEIGHT);
+            const d = eye.distanceTo(at);
+            if (d < FLASH_RADIUS && castFirst(eye, at.clone().sub(eye).normalize(), Math.max(0.1, d - 0.4)) === null) {
+              const look = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)).normalize();
+              const toBang = at.clone().sub(eye).setY(0).normalize();
+              const facing = Math.max(0, look.dot(toBang));
+              flashRef.current = Math.max(flashRef.current, (1 - d / FLASH_RADIUS) * (0.35 + 0.65 * facing));
+            }
+          }
+          for (const f of fighters) {
+            if (!f.alive || f.isHuman || !f.ai) continue;
+            const d = f.pos.distanceTo(at);
+            if (d > FLASH_RADIUS) continue;
+            f.ai.blindLeft = Math.max(f.ai.blindLeft, 3.2 * (1 - d / FLASH_RADIUS));
+          }
+          return;
+        }
         playSfx("land", 1, -0.55);
         playSfx("kill", 0.7, -0.4);
         playSfx("shotgun", 0.9, -0.5);
@@ -2111,7 +2216,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       arcLine.visible = false;
       landMarker.visible = false;
       const { dir, from, speed } = bombOrigin();
-      bombSystem.throwBomb(from, dir, speed);
+      bombSystem.throwBomb(from, dir, speed, grenadeKindRef.current);
       playSfx("equip", 0.7, 0.5);
       onBombThrownRef.current();
     };
@@ -2911,6 +3016,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       const brain = f.ai;
       if (!brain) return;
       const prof = BOT_PROFILES[brain.difficulty];
+      if (brain.blindLeft > 0) brain.blindLeft -= dt;
 
       // keep bots planted on the ground
       const nextProbe = (botGroundTimers.get(f.id) ?? 0) - dt;
@@ -2964,7 +3070,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       brain.losTimer -= dt;
       if (brain.losTimer <= 0) {
         brain.losTimer = 0.12 + Math.random() * 0.08;
-        brain.losClear = castFirst(eye, dir, Math.max(0.1, dist - 0.4)) === null;
+        brain.losClear =
+          castFirst(eye, dir, Math.max(0.1, dist - 0.4)) === null && !smokeField.blocks(eye, aim);
         if (brain.losClear) {
           brain.lastSeen = targetPos.clone();
         }
@@ -3041,6 +3148,11 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       const botWeaponName = bw?.name ?? "Rifle";
 
       // ---- firing discipline: reaction delay, bursts, pauses
+      if (brain.blindLeft > 0) {
+        // flashed: stumble, hold fire
+        brain.reactionLeft = Math.max(brain.reactionLeft, prof.reaction);
+        return;
+      }
       if (!visible || dist > botRange) {
         brain.reactionLeft = Math.min(brain.reactionLeft + dt * 0.5, prof.reaction);
         return;
@@ -3118,6 +3230,15 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       bombSystem.update(dt);
       explosionFx.update(dt);
       updateBombPreview();
+      tickMushrooms(dt);
+      // EP slowly converts into HP whenever the player is hurt
+      if (human && human.alive && epRef.current > 0 && human.hp < MAX_HP) {
+        const amount = Math.min(epRef.current, EP_TO_HP_RATE * dt);
+        human.hp = Math.min(MAX_HP, human.hp + amount);
+        epRef.current -= amount;
+        setEp(epRef.current);
+        syncHud();
+      }
       for (const fx of impactPool) fx.update(dt);
 
       // character power: tick timers, apply regen, keep the aura on the player
@@ -3709,6 +3830,13 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         weatherApply?.(weather.flash(), weatherWet);
       }
       skybox?.update(camera.position, dt);
+      smokeField.update(dt);
+      if (flashRef.current > 0) {
+        flashRef.current = Math.max(0, flashRef.current - dt * 0.42);
+        if (flashElRef.current) flashElRef.current.style.opacity = String(Math.min(1, flashRef.current));
+      } else if (flashElRef.current && flashElRef.current.style.opacity !== "0") {
+        flashElRef.current.style.opacity = "0";
+      }
       renderer.render(scene, camera);
 
     };
@@ -3721,6 +3849,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
     return () => {
       disposed = true;
+      scene.remove(mushroomGroup);
+      smokeField.clear();
       skybox?.dispose();
       skybox = null;
       weather?.dispose();
@@ -3906,6 +4036,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       }
       if (e.code === "Escape") actionsRef.current?.cancelWall();
       if (is("shop") && matchRef.current.phase === "countdown") setShopOpen((v) => !v);
+      if (e.code === "KeyG") cycleGrenadeRef.current();
+      if (e.code === "KeyF") useInhalerRef.current();
       if (e.code === "Backquote") setShowDebug((v) => !v);
       if (e.code === "Digit1" || e.code === "Digit2" || e.code === "Digit3" || e.code === "Digit4") {
         const i = Number(e.code.slice(5)) - 1;
@@ -3972,6 +4104,12 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   return (
     <div className="relative h-full w-full">
       <div ref={mountRef} className="h-full w-full touch-none select-none" />
+      {/* flashbang whiteout — opacity driven straight from the render loop */}
+      <div
+        ref={flashElRef}
+        className="pointer-events-none absolute inset-0 z-40 bg-white"
+        style={{ opacity: 0, transition: "opacity 60ms linear" }}
+      />
       <div
         ref={vignetteRef}
         className="pointer-events-none absolute inset-0"
@@ -4245,6 +4383,21 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
                 {playerStatsHud.kills}K/{playerStatsHud.deaths}D
               </span>
             </div>
+            {/* EP reserve — trickles into HP; inhalers (F) top it up */}
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-amber-300/80">
+                EP {Math.round(ep)}
+              </span>
+              <div className="h-1 flex-1 overflow-hidden rounded-sm bg-black/70 ring-1 ring-white/10">
+                <div
+                  className="h-full bg-amber-300 transition-all duration-150"
+                  style={{ width: `${Math.max(0, Math.min(100, (ep / MAX_EP) * 100))}%` }}
+                />
+              </div>
+              <span className="text-[9px] uppercase tracking-widest text-white/45 tabular-nums">
+                INH {inhalers}
+              </span>
+            </div>
           </div>
 
           <div
@@ -4369,10 +4522,14 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
               prone={prone}
               kits={kits}
               onHeal={useHealthKit}
+              inhalers={inhalers}
+              onUseInhaler={() => useInhalerRef.current()}
               healProgress={healProgress}
               bombs={bombs}
               bombArmed={bombArmed}
               onThrowBomb={throwBomb}
+              grenadeLabel={GRENADE_DEFS[grenadeKind].short}
+              onCycleGrenade={cycleGrenade}
               walls={wallCharges}
               onThrowWall={throwShieldWall}
               slots={slots}
