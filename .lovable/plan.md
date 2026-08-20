@@ -11,6 +11,8 @@
      `- X <what was done> — files: <file paths> — lines: <edited X lines 20-80> — <one line summary>`
 4. Never delete completed lines; the `X` marks are the progress record.
 5. Use Lovable Cloud directly when needed and no user approval is required; if approval is required, skip it and note it.
+6. when you done  the list you picked come back here update what you did and then pick nother 3 or 4  featers and do them , when you done them come back here and take nother 3/4 ..etc you should keep going untill one of the 2 happens the platform stop you by force or the user asked to stop you aree aloowed to run up to 2h without stopping
+7. every thing you dont needs an icon or pic you should and have to create the pic using your imagine tool
 
 ## OFF-LIST WORK
 
