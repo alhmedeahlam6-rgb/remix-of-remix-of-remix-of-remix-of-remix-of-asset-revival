@@ -115,10 +115,10 @@
 - X Flashbangs: Blinds enemies (screen goes white).
 - X Smoke Grenades: Creates a cloud to block vision.
 - X Decoy Grenades: Fake gunshot sounds and a red dot on the enemy minimap.
-- EP (Energy Points) System: Yellow bar above HP that slowly converts to HP.
-- Mushrooms: Ground pickup, few seconds to eat, provides EP.
-- Inhalers: Used while running for instant small HP and EP.
-- Medkits: Stand still 3 seconds to heal a large chunk of HP.
+- X EP (Energy Points) System: Yellow bar above HP that slowly converts to HP.
+- X Mushrooms: Ground pickup, few seconds to eat, provides EP.
+- X Inhalers: Used while running for instant small HP and EP.
+- X Medkits: Stand still 3 seconds to heal a large chunk of HP.
 - X Treatment Gun/Sniper: Heals teammates when shot, hurts enemies.
 
 ## Phase 7: Map Dynamics & Vehicles
