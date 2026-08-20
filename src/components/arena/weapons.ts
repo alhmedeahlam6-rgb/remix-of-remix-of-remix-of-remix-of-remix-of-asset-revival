@@ -136,6 +136,8 @@ export type WeaponBehavior = {
   zoom: number;
   /** audio flavour */
   sound: "rifle" | "carbine" | "smg" | "shotgun" | "sniper" | "mg" | "pistol" | "deagle" | "knife";
+  /** if true, hitting teammates restores HP instead of dealing damage */
+  healsTeammates?: boolean;
 };
 
 const BEHAVIORS: Record<string, WeaponBehavior> = {
