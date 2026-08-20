@@ -10,8 +10,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export const BOMB_FUSE = 5;
 
-/** throwables: frag damages, flash blinds, smoke blocks line of sight */
-export type GrenadeKind = "frag" | "flash" | "smoke";
+/** throwables: frag damages, flash blinds, smoke blocks line of sight, decoy fakes shots */
+export type GrenadeKind = "frag" | "flash" | "smoke" | "decoy";
 
 export const GRENADE_DEFS: Record<
   GrenadeKind,
@@ -20,6 +20,7 @@ export const GRENADE_DEFS: Record<
   frag: { label: "Frag", short: "FRG", fuse: 5, color: 0xff8a3c, light: 0xff5a1e },
   flash: { label: "Flashbang", short: "FLS", fuse: 1.7, color: 0xfff6d0, light: 0xfff0b0 },
   smoke: { label: "Smoke", short: "SMK", fuse: 1.5, color: 0xbfc8d4, light: 0x9fb0c4 },
+  decoy: { label: "Decoy", short: "DEC", fuse: 1.5, color: 0x8ee36d, light: 0x6cd14a },
 };
 
 export const GRENADE_KINDS = Object.keys(GRENADE_DEFS) as GrenadeKind[];
@@ -28,6 +29,9 @@ export const GRENADE_KINDS = Object.keys(GRENADE_DEFS) as GrenadeKind[];
 export const FLASH_RADIUS = 16;
 export const SMOKE_RADIUS = 4.2;
 export const SMOKE_LIFE = 9;
+/** decoy lifetime and how often it barks a fake gunshot */
+export const DECOY_LIFE = 8;
+export const DECOY_BARK_INTERVAL = 0.9;
 /** blast radius in metres */
 export const BOMB_RADIUS = 5;
 /** damage at the very centre of the blast */

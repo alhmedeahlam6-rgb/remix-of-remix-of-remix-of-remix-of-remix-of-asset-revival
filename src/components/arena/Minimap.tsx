@@ -9,6 +9,8 @@ export type RadarState = {
     isHuman: boolean;
   }[];
   player: { x: number; z: number; yaw: number } | null;
+  /** active decoy markers, shown as enemy dots to the opposite team */
+  decoys: { x: number; z: number; team: "blue" | "red"; ttl: number }[];
 };
 
 /**
@@ -158,6 +160,16 @@ export default function Minimap({ radarRef, mapRef, imageRef }: Props) {
           ctx.lineWidth = 1.5;
           ctx.stroke();
         }
+      }
+
+      // decoy markers: pulse as enemy dots to bait the opposing team
+      for (const d of st.decoys) {
+        const [mx, mz] = toMap(d.x, d.z);
+        const pulse = 0.6 + 0.4 * Math.sin(performance.now() * 0.008);
+        ctx.fillStyle = d.team === "blue" ? "rgba(142,227,109,0.85)" : "#ff3b1f";
+        ctx.beginPath();
+        ctx.arc(mx, mz, 2.5 + pulse, 0, Math.PI * 2);
+        ctx.fill();
       }
 
       // player heading arrow

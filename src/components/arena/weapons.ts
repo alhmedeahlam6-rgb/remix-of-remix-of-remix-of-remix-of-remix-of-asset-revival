@@ -12,6 +12,21 @@ import deagle from "@/assets/weapons/deagle.png";
 import knife from "@/assets/weapons/knife.png";
 import fists from "@/assets/weapons/fists.png";
 
+const treatmentSvg =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Crect x='10' y='22' width='80' height='16' rx='2' fill='%23334155'/%3E%3Crect x='70' y='18' width='24' height='24' rx='4' fill='%234ade80'/%3E%3Crect x='90' y='26' width='20' height='8' fill='%236b7280'/%3E%3Cpath d='M78 26h8v8h-8z' fill='white'/%3E%3Cpath d='M76 28h12v4h-12z' fill='white'/%3E%3C/svg%3E";
+
+const treatmentSniperSvg =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 50'%3E%3Crect x='5' y='20' width='100' height='10' rx='2' fill='%23334155'/%3E%3Crect x='90' y='15' width='35' height='20' rx='3' fill='%234ade80'/%3E%3Crect x='125' y='22' width='12' height='6' fill='%236b7280'/%3E%3Cpath d='M98 20h8v10h-8z' fill='white'/%3E%3Cpath d='M96 23h12v4h-12z' fill='white'/%3E%3C/svg%3E";
+
+const panSvg =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='28' fill='none' stroke='%239ca3af' stroke-width='8'/%3E%3Ccircle cx='40' cy='40' r='20' fill='%236b7280'/%3E%3Crect x='54' y='54' width='22' height='8' rx='2' fill='%234b5563' transform='rotate(45 65 58)'/%3E%3C/svg%3E";
+
+const batSvg =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'%3E%3Crect x='10' y='14' width='70' height='12' rx='3' fill='%23d97706'/%3E%3Crect x='75' y='12' width='18' height='16' rx='2' fill='%239ca3af'/%3E%3C/svg%3E";
+
+const katanaSvg =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40'%3E%3Cpath d='M10 28 Q60 8 110 12 L108 16 Q60 14 14 32 Z' fill='%23e2e8f0'/%3E%3Crect x='105' y='10' width='10' height='20' rx='1' fill='%234b5563'/%3E%3C/svg%3E";
+
 export type WeaponClass = "Assault" | "SMG" | "Shotgun" | "Sniper" | "Heavy" | "Pistol" | "Melee";
 
 export type Weapon = {
@@ -32,6 +47,10 @@ export const HEAVY_CLASSES: WeaponClass[] = ["Assault", "SMG", "Shotgun", "Snipe
 
 export const isHeavy = (w: Weapon) => HEAVY_CLASSES.includes(w.cls);
 
+/** Melee weapons strapped to the back that can deflect bullets from behind. */
+export const DEFLECTION_MELEES = new Set(["pan", "bat", "katana"]);
+export const isDeflectionMelee = (id: string | null) => !!id && DEFLECTION_MELEES.has(id);
+
 /** Loadout rule: up to 2 heavy weapons + exactly one sidearm (pistol or knife). */
 export const MAX_HEAVY = 2;
 
@@ -39,6 +58,8 @@ export const WEAPONS: Weapon[] = [
   { id: "ak47", name: "AK47", cls: "Assault", price: 2500, damage: 61, fireRate: 61, range: 72, magazine: 30, image: ak47 },
   { id: "m4a1", name: "M4A1", cls: "Assault", price: 2400, damage: 54, fireRate: 66, range: 70, magazine: 30, image: m4a1 },
   { id: "scar", name: "SCAR", cls: "Assault", price: 2600, damage: 57, fireRate: 60, range: 68, magazine: 30, image: scar },
+  { id: "treatment", name: "TREATMENT RIFLE", cls: "Assault", price: 3200, damage: 38, fireRate: 55, range: 60, magazine: 25, image: treatmentSvg },
+  { id: "treatment_sniper", name: "TREATMENT SNIPER", cls: "Sniper", price: 4200, damage: 55, fireRate: 20, range: 90, magazine: 5, image: treatmentSniperSvg },
   { id: "mp40", name: "MP40", cls: "SMG", price: 1800, damage: 48, fireRate: 95, range: 42, magazine: 40, image: mp40 },
   { id: "ump", name: "UMP", cls: "SMG", price: 1700, damage: 45, fireRate: 80, range: 46, magazine: 30, image: ump },
   { id: "m1014", name: "M1014", cls: "Shotgun", price: 2100, damage: 88, fireRate: 34, range: 20, magazine: 7, image: m1014 },
@@ -49,6 +70,9 @@ export const WEAPONS: Weapon[] = [
   { id: "deagle", name: "DESERT EAGLE", cls: "Pistol", price: 1200, damage: 70, fireRate: 30, range: 38, magazine: 7, image: deagle },
   { id: "fists", name: "FISTS", cls: "Melee", price: 0, damage: 34, fireRate: 70, range: 2, magazine: 0, image: fists },
   { id: "knife", name: "COMBAT KNIFE", cls: "Melee", price: 300, damage: 100, fireRate: 55, range: 2, magazine: 0, image: knife },
+  { id: "pan", name: "CAST-IRON PAN", cls: "Melee", price: 800, damage: 85, fireRate: 45, range: 2, magazine: 0, image: panSvg },
+  { id: "bat", name: "TITANIUM BAT", cls: "Melee", price: 700, damage: 78, fireRate: 50, range: 2, magazine: 0, image: batSvg },
+  { id: "katana", name: "KATANA", cls: "Melee", price: 1200, damage: 120, fireRate: 40, range: 2, magazine: 0, image: katanaSvg },
 ];
 
 export const getWeapon = (id: string | null) => WEAPONS.find((w) => w.id === id) ?? null;
@@ -74,6 +98,8 @@ export const DAMAGE_PROFILES: Record<string, DamageProfile> = {
   ak47:   { body: [22, 45],   head: [62, 110],  falloffStart: 0.35 },
   m4a1:   { body: [20, 41],   head: [55, 100],  falloffStart: 0.38 },
   scar:   { body: [19, 39],   head: [52, 95],   falloffStart: 0.38 },
+  treatment: { body: [8, 18], head: [12, 28],  falloffStart: 0.45 },
+  treatment_sniper: { body: [14, 32], head: [22, 48], falloffStart: 0.6 },
   mp40:   { body: [13, 33],   head: [37, 62],   falloffStart: 0.28 },
   ump:    { body: [12, 31],   head: [35, 58],   falloffStart: 0.28 },
   m1014:  { body: [10, 26],   head: [18, 44],   falloffStart: 0.22 },
@@ -84,6 +110,9 @@ export const DAMAGE_PROFILES: Record<string, DamageProfile> = {
   deagle: { body: [40, 72],   head: [100, 160], falloffStart: 0.3 },
   knife:  { body: [90, 110],  head: [150, 200], falloffStart: 1 },
   fists:  { body: [28, 34],   head: [48, 60],   falloffStart: 1 },
+  pan:    { body: [75, 95],   head: [120, 150], falloffStart: 1 },
+  bat:    { body: [68, 88],   head: [110, 140], falloffStart: 1 },
+  katana: { body: [110, 130], head: [180, 220], falloffStart: 1 },
 };
 
 const DEFAULT_PROFILE: DamageProfile = { body: [15, 30], head: [40, 70], falloffStart: 0.35 };
@@ -136,6 +165,8 @@ export type WeaponBehavior = {
   zoom: number;
   /** audio flavour */
   sound: "rifle" | "carbine" | "smg" | "shotgun" | "sniper" | "mg" | "pistol" | "deagle" | "knife";
+  /** if true, hitting teammates restores HP instead of dealing damage */
+  healsTeammates?: boolean;
 };
 
 const BEHAVIORS: Record<string, WeaponBehavior> = {
@@ -143,6 +174,8 @@ const BEHAVIORS: Record<string, WeaponBehavior> = {
   ak47:   { mode: "auto",   interval: 0.100, cycle: 0,    shots: 1, spread: 0.014, recoil: 1.15, zoom: 1.4, sound: "rifle" },   // 600 rpm
   m4a1:   { mode: "auto",   interval: 0.075, cycle: 0,    shots: 1, spread: 0.010, recoil: 0.85, zoom: 1.4, sound: "carbine" }, // 800 rpm
   scar:   { mode: "burst",  interval: 0.060, cycle: 0.30, shots: 3, spread: 0.011, recoil: 1.0,  zoom: 1.4, sound: "rifle" },   // 3-round burst
+  treatment: { mode: "auto", interval: 0.109, cycle: 0, shots: 1, spread: 0.012, recoil: 0.75, zoom: 1.4, sound: "rifle", healsTeammates: true },
+  treatment_sniper: { mode: "bolt", interval: 0, cycle: 1.45, shots: 1, spread: 0.0, recoil: 1.8, zoom: 5.5, sound: "sniper", healsTeammates: true },
   mp40:   { mode: "auto",   interval: 0.055, cycle: 0,    shots: 1, spread: 0.022, recoil: 0.70, zoom: 1.25, sound: "smg" },    // fastest full-auto
   ump:    { mode: "auto",   interval: 0.070, cycle: 0,    shots: 1, spread: 0.018, recoil: 0.65, zoom: 1.25, sound: "smg" },    // 850 rpm
   m1014:  { mode: "single", interval: 0,     cycle: 0.30, shots: 5, spread: 0.050, recoil: 1.6,  zoom: 1.1, sound: "shotgun" }, // semi-auto, 5 pellets
@@ -153,6 +186,9 @@ const BEHAVIORS: Record<string, WeaponBehavior> = {
   deagle: { mode: "single", interval: 0,     cycle: 0.42, shots: 1, spread: 0.003, recoil: 1.7,  zoom: 1.5, sound: "deagle" },
   knife:  { mode: "melee",  interval: 0,     cycle: 0.45, shots: 1, spread: 0.0,   recoil: 0.3,  zoom: 1, sound: "knife" },
   fists:  { mode: "melee",  interval: 0,     cycle: 0.38, shots: 1, spread: 0.0,   recoil: 0.2,  zoom: 1, sound: "knife" },
+  pan:    { mode: "melee",  interval: 0,     cycle: 0.55, shots: 1, spread: 0.0,   recoil: 0.4,  zoom: 1, sound: "knife" },
+  bat:    { mode: "melee",  interval: 0,     cycle: 0.48, shots: 1, spread: 0.0,   recoil: 0.35, zoom: 1, sound: "knife" },
+  katana: { mode: "melee",  interval: 0,     cycle: 0.65, shots: 1, spread: 0.0,   recoil: 0.45, zoom: 1, sound: "knife" },
 };
 
 
@@ -175,6 +211,8 @@ export const MAGAZINES: Record<string, number> = {
   ak47: 30,
   m4a1: 30,
   scar: 30,
+  treatment: 25,
+  treatment_sniper: 5,
   mp40: 40,
   ump: 30,
   m1014: 7,
@@ -185,6 +223,9 @@ export const MAGAZINES: Record<string, number> = {
   deagle: 7,
   knife: 0,
   fists: 0,
+  pan: 0,
+  bat: 0,
+  katana: 0,
 };
 
 export function getMagazine(id: string | null) {
@@ -195,6 +236,8 @@ export const RESERVE_AMMO: Record<string, number> = {
   ak47: 90,
   m4a1: 90,
   scar: 90,
+  treatment: 75,
+  treatment_sniper: 20,
   mp40: 160,
   ump: 120,
   m1014: 35,
@@ -205,6 +248,9 @@ export const RESERVE_AMMO: Record<string, number> = {
   deagle: 21,
   knife: 0,
   fists: 0,
+  pan: 0,
+  bat: 0,
+  katana: 0,
 };
 
 export function getReserveAmmo(id: string | null) {

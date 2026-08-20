@@ -24,6 +24,8 @@ import {
   THROW_SPEED,
   THROW_SPEED_JUMP,
   FLASH_RADIUS,
+  DECOY_LIFE,
+  DECOY_BARK_INTERVAL,
   GRENADE_DEFS,
   GRENADE_KINDS,
   type GrenadeKind,
@@ -76,8 +78,10 @@ import {
   getMagazine,
   getReserveAmmo,
   getReloadTime,
+  isDeflectionMelee,
   type Weapon,
 } from "./weapons";
+import { createSafeZone, updateSafeZone, damageOutsideZone, createSafeZoneVisual, type SafeZone } from "./safeZone";
 import {
   BOT_PROFILES,
   createBotBrain,
@@ -85,6 +89,7 @@ import {
   rerollStrafe,
   rollBurst,
   rollPause,
+  attractToDecoy,
   type BotBrain,
 } from "./botAi";
 
@@ -157,6 +162,8 @@ type Fighter = {
   fx: SpawnFx | null;
   /** weapon id used for damage/fire-rate calculations */
   weapon: string;
+  /** sidearm id carried on the back; used for melee deflection checks */
+  sidearm: string | null;
   /** tactical brain — null for the human player */
   ai: BotBrain | null;
 };
@@ -292,6 +299,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   });
   const [matchConfig, setMatchConfig] = useState(MATCH_CONFIG.standard);
   const matchConfigRef = useRef(matchConfig);
+  const safeZoneRef = useRef<SafeZone | null>(null);
   matchConfigRef.current = matchConfig;
   const [killFeed, setKillFeed] = useState<KillFeedItem[]>([]);
   const [weaponReady, setWeaponReady] = useState(true);
@@ -354,8 +362,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   kitPartialRef.current = kitPartial;
   /** 0..1 progress of the medkit currently being applied */
   const [healProgress, setHealProgress] = useState(0);
-  /** throwables per type; frag damages, flash blinds, smoke blocks sight */
-  const [grenades, setGrenades] = useState<Record<GrenadeKind, number>>({ frag: 3, flash: 2, smoke: 2 });
+  /** throwables per type; frag damages, flash blinds, smoke blocks sight, decoy fakes shots */
+  const [grenades, setGrenades] = useState<Record<GrenadeKind, number>>({ frag: 3, flash: 2, smoke: 2, decoy: 2 });
   const [grenadeKind, setGrenadeKind] = useState<GrenadeKind>("frag");
   const grenadeKindRef = useRef<GrenadeKind>(grenadeKind);
   grenadeKindRef.current = grenadeKind;
@@ -520,7 +528,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   const crosshairRef = useRef<HTMLDivElement>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
   const damageFlashRef = useRef(0);
-  const radarRef = useRef<RadarState>({ fighters: [], player: null });
+  const radarRef = useRef<RadarState>({ fighters: [], player: null, decoys: [] });
   const mapGridRef = useRef<MapGrid | null>(null);
   const mapImageRef = useRef<string | null>(null);
   const adsRef = useRef(false);
@@ -677,6 +685,10 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     renderer.domElement.style.touchAction = "none";
     renderer.domElement.style.userSelect = "none";
     mount.appendChild(renderer.domElement);
+
+    const safeZoneVisual = createSafeZoneVisual(1);
+    safeZoneVisual.mesh.visible = false;
+    scene.add(safeZoneVisual.mesh);
 
     // ---- Lighting rig ----
     // With baked lighting on, the level is unlit: these lights only shade the
@@ -1004,6 +1016,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     const enemyMeshes = (team: Team) =>
       fighters.filter((f) => f.team !== team && f.alive && f.group).flatMap((f) => f.meshes);
 
+    const friendlyMeshes = (team: Team) =>
+      fighters.filter((f) => f.team === team && f.alive && f.group).flatMap((f) => f.meshes);
+
     const fighterByMesh = (mesh: THREE.Object3D) => {
       for (const f of fighters) if (f.meshes.includes(mesh as THREE.Mesh)) return f;
       return null;
@@ -1157,6 +1172,19 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     const damage = (victim: Fighter, amount: number, killer: Fighter) => {
       if (!victim.alive) return;
       let incoming = amount;
+      // Melee deflection: pan/bat/katana on the back can block shots from behind
+      if (isDeflectionMelee(victim.sidearm)) {
+        const toKiller = killer.pos.clone().sub(victim.pos);
+        toKiller.y = 0;
+        const victimYaw = victim.isHuman ? camera.rotation.y : (victim.group?.rotation.y ?? 0);
+        const facing = new THREE.Vector3(Math.sin(victimYaw), 0, Math.cos(victimYaw));
+        const behind = toKiller.normalize().dot(facing) > 0.35;
+        if (behind && Math.random() < 0.35) {
+          playSfxAt("hit", victim.pos.distanceTo(walkPos), 0.6, (Math.random() - 0.5) * 0.1);
+          spawnImpact(victim.pos.clone().add(new THREE.Vector3(0, 1.1, 0)), new THREE.Color(0xc0c0c0));
+          return;
+        }
+      }
       if (victim.isHuman) {
         // Emberveil: the round dies on the shell, never reaching the player
         if (barrierUp()) {
@@ -1195,6 +1223,13 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         }
         syncHud();
       }
+    };
+
+    /** Restore HP to a teammate. */
+    const heal = (target: Fighter, amount: number) => {
+      if (!target.alive) return;
+      target.hp = Math.min(MAX_HP, target.hp + Math.round(amount));
+      if (target.isHuman) syncHud();
     };
 
     /** Floating damage number at the world-space hit point. */
@@ -1277,6 +1312,20 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       setMatch(matchRef.current);
       setKillFeed([]);
       saveSentRef.current = false;
+      // clear lingering decoys between matches
+      for (const d of decoys) decoyGroup.remove(d.root);
+      decoys.length = 0;
+      // safe zone: starts covering the whole arena, then shrinks to a duel ring
+      const mapW = boundsMaxX - boundsMinX;
+      const mapD = boundsMaxZ - boundsMinZ;
+      safeZoneRef.current = createSafeZone(
+        new THREE.Vector3((boundsMinX + boundsMaxX) / 2, 0, (boundsMinZ + boundsMaxZ) / 2),
+        Math.max(mapW, mapD) * 0.55,
+        Math.min(mapW, mapD) * 0.22,
+        35,
+        60,
+        5,
+      );
       const firstTime = !spawnFxPlayed;
       for (const f of fighters) respawn(f, true);
       if (firstTime) {
@@ -1627,9 +1676,13 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         raycaster.set(origin, pelletDir);
         raycaster.far = weaponRange;
         const botHits = raycaster.intersectObjects(enemyMeshes(human.team), false);
+        const friendlyHits = behavior.healsTeammates
+          ? raycaster.intersectObjects(friendlyMeshes(human.team), false)
+          : [];
 
         const worldDist = worldHits[0]?.distance ?? Infinity;
         const botDist = botHits[0]?.distance ?? Infinity;
+        const friendDist = friendlyHits[0]?.distance ?? Infinity;
 
 
         const laser = laserRef.current;
@@ -1642,8 +1695,20 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
         let end: THREE.Vector3;
         let hitBot = false;
+        let healBeam = false;
         const botHit = botHits[0];
-        if (botDist < worldDist && botHit) {
+        const friendHit = friendlyHits[0];
+        if (behavior.healsTeammates && friendDist < worldDist && friendDist < botDist && friendHit) {
+          end = friendHit.point.clone();
+          const target = fighterByMesh(friendHit.object);
+          if (target) {
+            const amt = Math.round(getWeaponDamageAt(w, friendHit.distance, false) * 1.6);
+            heal(target, amt);
+            spawnDamagePopup(end, amt, false);
+            healBeam = true;
+            anyHit = true;
+          }
+        } else if (botDist < worldDist && botHit) {
           end = botHit.point.clone();
           const victim = fighterByMesh(botHit.object);
           if (victim) {
@@ -1669,6 +1734,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         positions[5] = end.z;
         posAttr.needsUpdate = true;
 
+        laser.material.color.setHex(healBeam ? 0x4ade80 : 0xffe08a);
+        (laser.sparkMesh.material as THREE.MeshBasicMaterial).color.setHex(healBeam ? 0x4ade80 : 0xffe08a);
+        laser.spark.color.setHex(healBeam ? 0x4ade80 : 0xffa040);
         laser.sparkMesh.position.copy(end);
         laser.sparkMesh.visible = true;
         laser.spark.position.copy(end);
@@ -1676,7 +1744,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         laser.material.opacity = 1;
         laser.ttl = 0.12;
 
-        spawnImpact(end, hitBot ? new THREE.Color(human.team === "blue" ? 0x3f8fff : 0xff3b1f) : undefined);
+        spawnImpact(end, hitBot ? new THREE.Color(human.team === "blue" ? 0x3f8fff : 0xff3b1f) : healBeam ? new THREE.Color(0x4ade80) : undefined);
         // Kill feed is already pushed by damage()/kill(); don't duplicate it here.
       }
 
@@ -2053,6 +2121,26 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     scene.add(explosionFx.group);
     const smokeField = createSmokeField(initialQuality === "low" ? 0.5 : 1);
     scene.add(smokeField.group);
+    /** active decoys: fake gunshot sources that draw bot attention and minimap dots */
+    type Decoy = { root: THREE.Group; ttl: number; nextBark: number; team: Team };
+    const decoys: Decoy[] = [];
+    const decoyMat = new THREE.MeshStandardMaterial({ color: 0x8ee36d, emissive: 0x4aa02c, emissiveIntensity: 0.6 });
+    const decoyGroup = new THREE.Group();
+    scene.add(decoyGroup);
+    const spawnDecoy = (at: THREE.Vector3, team: Team) => {
+      const root = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.35, 8), decoyMat);
+      body.position.y = 0.18;
+      const dish = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.12, 12), decoyMat);
+      dish.position.y = 0.42;
+      root.add(body, dish);
+      root.position.copy(at);
+      decoyGroup.add(root);
+      const light = new THREE.PointLight(0x8ee36d, 2.5, 7, 2);
+      light.position.set(0, 0.6, 0);
+      root.add(light);
+      decoys.push({ root, ttl: DECOY_LIFE, nextBark: 0.2 + Math.random() * 0.4, team });
+    };
     const bombSystem: BombSystem = createBombSystem({
       groundAt: (x, z, fromY, maxRise) => groundAt(x, z, fromY, maxRise ?? 4),
       onExplode: (at, kind) => {
@@ -2085,6 +2173,11 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
             if (d > FLASH_RADIUS) continue;
             f.ai.blindLeft = Math.max(f.ai.blindLeft, 3.2 * (1 - d / FLASH_RADIUS));
           }
+          return;
+        }
+        if (kind === "decoy") {
+          spawnDecoy(at, human?.team ?? "blue");
+          playSfx("equip", 0.7, 0.2);
           return;
         }
         playSfx("land", 1, -0.55);
@@ -2814,6 +2907,14 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
                 };
           const id = `${team.toUpperCase()}_${index + 1}`;
           const weapon = isHuman ? "deagle" : team === "blue" ? "ak47" : index === 0 ? "m4a1" : "ump";
+          const rawSidearm = slots[2];
+          const sidearm: string = (isHuman
+            ? (typeof rawSidearm === "string" && ["pan", "bat", "katana", "knife", "fists"].includes(rawSidearm)
+                ? rawSidearm
+                : "fists")
+            : Math.random() < 0.25
+              ? (["pan", "bat", "katana"] as const)[Math.floor(Math.random() * 3)]
+              : "knife") as string;
           const f: Fighter = {
             id,
             team,
@@ -2829,6 +2930,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
             tracer: null,
             fx: null,
             weapon,
+            sidearm,
             ai: isHuman
               ? null
               : createBotBrain(
@@ -3028,6 +3130,10 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         botGroundTimers.set(f.id, nextProbe);
       }
 
+      // ---- decoy bait timer
+      if (brain.decoyAttractLeft > 0) brain.decoyAttractLeft -= dt;
+      if (brain.decoyAttractLeft <= 0) brain.decoyAttract = null;
+
       // ---- target selection: nearest living enemy, sticky to the current one
       let bestTarget: Fighter | null = null;
       let bestDist = Infinity;
@@ -3043,9 +3149,30 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         }
       }
 
+      // enemy decoys draw bots that can hear them; closer/smarter bots fall for it longer
+      if (bestDist > 18) {
+        for (const d of decoys) {
+          if (d.team === f.team) continue;
+          const distToDecoy = d.root.position.distanceTo(f.pos);
+          if (distToDecoy < 55 && Math.random() < 0.35) {
+            attractToDecoy(brain, d.root.position, 2.5 + Math.random() * 2);
+            break;
+          }
+        }
+      }
+
       if (!bestTarget) {
         brain.state = "hunt";
         brain.targetId = null;
+        if (brain.decoyAttract) {
+          const goal = brain.decoyAttract;
+          const away = goal.clone().sub(f.pos);
+          away.y = 0;
+          if (away.length() > 2.5) {
+            away.normalize();
+            moveBot(f, away.x * prof.moveSpeed * 0.8 * dt, away.z * prof.moveSpeed * 0.8 * dt);
+          }
+        }
         f.group.position.copy(f.pos);
         return;
       }
@@ -3112,8 +3239,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         forward = -0.9;
         strafe = brain.strafeDir * prof.strafe * 0.8;
       } else {
-        // hunt: walk to the last known position, then wander around it
-        const goal = brain.lastSeen ?? bestTarget.home.top;
+        // hunt: walk to the last known position or a decoy bait, then wander around it
+        const goal = brain.decoyAttract ?? brain.lastSeen ?? bestTarget.home.top;
         const away = goal.clone().sub(f.pos);
         away.y = 0;
         if (away.length() > 2.5) {
@@ -3230,7 +3357,45 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       bombSystem.update(dt);
       explosionFx.update(dt);
       updateBombPreview();
+      const nowSec = now / 1000;
+      if (safeZoneRef.current && matchRef.current.phase === "round") {
+        updateSafeZone(safeZoneRef.current, nowSec, dt);
+        safeZoneVisual.mesh.visible = true;
+        safeZoneVisual.mesh.scale.setScalar(safeZoneRef.current.currentRadius);
+        for (const f of fighters) {
+          if (!f.alive) continue;
+          const zoneDmg = damageOutsideZone(safeZoneRef.current, f.pos, dt);
+          if (zoneDmg > 0) {
+            damage(f, zoneDmg, f); // self-damage from the storm
+            if (f.isHuman && f.hp > 0) {
+              // brief red vignette handled by damage() already
+            }
+          }
+        }
+      } else {
+        safeZoneVisual.mesh.visible = false;
+      }
       tickMushrooms(dt);
+      // decoys: spin, bark fake shots, expire
+      for (let i = decoys.length - 1; i >= 0; i--) {
+        const d = decoys[i]!;
+        d.ttl -= dt;
+        d.nextBark -= dt;
+        d.root.rotation.y += dt * 4;
+        if (d.nextBark <= 0) {
+          d.nextBark = DECOY_BARK_INTERVAL * (0.8 + Math.random() * 0.6);
+          playSfxAt("rifle", d.root.position.distanceTo(camera.position), 0.55, (Math.random() - 0.5) * 0.15);
+          // small muzzle flash
+          const barkLight = new THREE.PointLight(0xffaa55, 6, 5, 1);
+          barkLight.position.copy(d.root.position).add(new THREE.Vector3(0, 0.5, 0));
+          root.add(barkLight);
+          window.setTimeout(() => root.remove(barkLight), 60);
+        }
+        if (d.ttl <= 0) {
+          decoyGroup.remove(d.root);
+          decoys.splice(i, 1);
+        }
+      }
       // EP slowly converts into HP whenever the player is hurt
       if (human && human.alive && epRef.current > 0 && human.hp < MAX_HP) {
         const amount = Math.min(epRef.current, EP_TO_HP_RATE * dt);
@@ -3767,6 +3932,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
           isHuman: f.isHuman,
         })),
         player: human ? { x: walkPos.x, z: walkPos.z, yaw } : null,
+        decoys: decoys.map((d) => ({ x: d.root.position.x, z: d.root.position.z, team: d.team, ttl: d.ttl })),
       };
 
       if (damageFlashRef.current > 0) {
@@ -3850,6 +4016,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     return () => {
       disposed = true;
       scene.remove(mushroomGroup);
+      scene.remove(decoyGroup);
+      for (const d of decoys) decoyGroup.remove(d.root);
+      decoys.length = 0;
       smokeField.clear();
       skybox?.dispose();
       skybox = null;

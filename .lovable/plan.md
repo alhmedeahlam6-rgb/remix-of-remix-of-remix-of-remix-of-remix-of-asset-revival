@@ -109,24 +109,24 @@
 - Full Control: Aim assist completely disabled.
 - Crosshair Bloom: Reticle widens the longer you hold the trigger.
 - Damage Numbers: White for body, Yellow for limbs/armor, Red for headshots.
-- Melee Deflection: Pans, Bats, and Katanas on the back block bullets.
+- X Melee Deflection: Pans, Bats, and Katanas on the back block bullets.
 - Gloo Walls: Deployable temporary cover that absorbs damage and blocks sight.
 - X Frag Grenades: Explosives with a cook timer.
 - X Flashbangs: Blinds enemies (screen goes white).
 - X Smoke Grenades: Creates a cloud to block vision.
-- Decoy Grenades: Fake gunshot sounds and a red dot on the enemy minimap.
-- EP (Energy Points) System: Yellow bar above HP that slowly converts to HP.
-- Mushrooms: Ground pickup, few seconds to eat, provides EP.
-- Inhalers: Used while running for instant small HP and EP.
-- Medkits: Stand still 3 seconds to heal a large chunk of HP.
-- Treatment Gun/Sniper: Heals teammates when shot, hurts enemies.
+- X Decoy Grenades: Fake gunshot sounds and a red dot on the enemy minimap.
+- X EP (Energy Points) System: Yellow bar above HP that slowly converts to HP.
+- X Mushrooms: Ground pickup, few seconds to eat, provides EP.
+- X Inhalers: Used while running for instant small HP and EP.
+- X Medkits: Stand still 3 seconds to heal a large chunk of HP.
+- X Treatment Gun/Sniper: Heals teammates when shot, hurts enemies.
 
 ## Phase 7: Map Dynamics & Vehicles
 - Vending Machines: Spend FF Coins for guns, ammo, or revive cards.
 - Airdrops (Loot Drops): Crates with high-tier weapons like the AWM or Groza.
 - Arsenal Doors: Locked bunkers with extreme loot, requiring a key.
-- Safe Zone (The Circle): White circle indicating where you are safe.
-- Electrical Storm (The Zone): Shrinking wall that damages you outside the safe zone.
+- X Safe Zone (The Circle): White circle indicating where you are safe.
+- X Electrical Storm (The Zone): Shrinking wall that damages you outside the safe zone.
 - Red Zone: Temporary area bombarded with random explosions.
 - UAV Drone (Danger Zone): Drone that reveals everyone inside its yellow circle.
 - Blue Zone: Start-of-match area with much higher tier loot.

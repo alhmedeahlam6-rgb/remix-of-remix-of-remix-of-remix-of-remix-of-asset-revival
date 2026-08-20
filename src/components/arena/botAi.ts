@@ -155,6 +155,10 @@ export type BotBrain = {
   losClear: boolean;
   /** seconds of flashbang blindness left; bots hold fire while blinded */
   blindLeft: number;
+  /** decoy bait: position the bot is temporarily investigating */
+  decoyAttract: THREE.Vector3 | null;
+  /** how long the decoy distraction lasts */
+  decoyAttractLeft: number;
 };
 
 const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
@@ -176,7 +180,15 @@ export function createBotBrain(difficulty: BotDifficulty, preferredRange: number
     losTimer: 0,
     losClear: false,
     blindLeft: 0,
+    decoyAttract: null,
+    decoyAttractLeft: 0,
   };
+}
+
+/** bait this bot toward a decoy position for a few seconds */
+export function attractToDecoy(brain: BotBrain, pos: THREE.Vector3, duration = 3.5) {
+  brain.decoyAttract = pos.clone();
+  brain.decoyAttractLeft = Math.max(brain.decoyAttractLeft, duration);
 }
 
 /** roll a fresh burst length for this profile */

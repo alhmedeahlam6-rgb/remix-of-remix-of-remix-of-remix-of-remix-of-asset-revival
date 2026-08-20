@@ -45,12 +45,13 @@ Last full audit: 2026-08-19.
 - Collision debug view for development.
 
 ## 5. Weapons
-- 13 weapons: AK47, M4A1, SCAR (Assault), MP40, UMP (SMG), M1014, SPAS12 (Shotgun), AWM, KAR98K (Sniper), M249 (Heavy), Desert Eagle (Pistol), Fists, Combat Knife (Melee).
+- 15 weapons: AK47, M4A1, SCAR, Treatment Rifle (Assault), MP40, UMP (SMG), M1014, SPAS12 (Shotgun), AWM, KAR98K, Treatment Sniper (Sniper), M249 (Heavy), Desert Eagle (Pistol), Fists, Combat Knife (Melee).
 - Per-weapon stats: price, damage, fire rate, range, magazine, shop art.
 - Fire modes: auto, single, bolt-action, melee — each with interval, cycle time, pellet count, spread, recoil and scope zoom.
 - Magazines and reserve ammo per weapon (e.g. M249 100/200, AWM 5/20).
 - Reload: arcade 0.5s rack for every gun, with auto-reload-when-empty option and dry-fire feedback.
 - Damage profiles: range falloff, headshot multiplier, per-zone damage.
+- Treatment Rifle and Treatment Sniper: shooting teammates restores HP (green tracer + popup), shooting enemies still deals reduced damage.
 - Bullet spread and recoil applied per shot, plus tracers.
 
 ## 6. Combat
@@ -64,8 +65,13 @@ Last full audit: 2026-08-19.
 - Bombs (`bomb.ts`): 5s fuse, 5m radius, 300 damage, physics arc with live trajectory preview, different throw power when jumping.
 - Explosion FX with radius-scaled blast.
 - Medkits: timed channelled heal that cancels if you move.
+- Energy Point (EP) system: yellow reserve bar that trickles into HP when wounded.
+- Inhalers: instant small HP + EP top-up usable while moving (`F` / touch chip), 2 charges.
+- Mushroom pickups: ground spawns that grant +30 EP on contact and regrow after 25 s.
 - Bot AI (`botAi.ts`): four difficulty tiers (Recruit/Regular/Veteran/Nightmare) scaling reaction, accuracy falloff, damage, headshot chance, move speed, aggression, strafe, burst length and retreat threshold; tactical state machine (hunt / engage / reposition / retreat), collision-aware sliding movement, throttled line-of-sight probes and firing discipline. Enemy skill is selectable in Settings > Gameplay.
-- Throwables: frag (5s fuse, 300 dmg), flashbang (1.7s fuse, 16 m blind — whiteout for the player, bots hold fire ~3s) and smoke (billboard cloud that blocks bot line of sight for 9s). Cycle with `G` on desktop or the chip above the grenade button on touch.
+- Safe zone / electrical storm: a shrinking circle that starts covering the arena and damages anyone outside it, forcing fights to a central duel ring.
+- Throwables: frag (5s fuse, 300 dmg), flashbang (1.7s fuse, 16 m blind — whiteout for the player, bots hold fire ~3s), smoke (billboard cloud that blocks bot line of sight for 9s) and decoy (fake gunshots, minimap bait, draws bots). Cycle with `G` on desktop or the chip above the grenade button on touch.
+- Melee deflection: Pan, Titanium Bat and Katana block ~35% of shots that hit the back; available in the shop and on some bots.
 
 ## 7. Movement & controls
 - Desktop: WASD move, jump, sprint, crouch, prone, reload, gloo wall, bomb, medkit, character power, shop — all rebindable.
