@@ -687,6 +687,10 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     renderer.domElement.style.userSelect = "none";
     mount.appendChild(renderer.domElement);
 
+    const safeZoneVisual = createSafeZoneVisual(1);
+    safeZoneVisual.mesh.visible = false;
+    scene.add(safeZoneVisual.mesh);
+
     // ---- Lighting rig ----
     // With baked lighting on, the level is unlit: these lights only shade the
     // handful of dynamic objects (fighters, gloo walls, props), so the extra
