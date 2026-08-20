@@ -1007,6 +1007,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
     const enemyMeshes = (team: Team) =>
       fighters.filter((f) => f.team !== team && f.alive && f.group).flatMap((f) => f.meshes);
 
+    const friendlyMeshes = (team: Team) =>
+      fighters.filter((f) => f.team === team && f.alive && f.group).flatMap((f) => f.meshes);
+
     const fighterByMesh = (mesh: THREE.Object3D) => {
       for (const f of fighters) if (f.meshes.includes(mesh as THREE.Mesh)) return f;
       return null;
