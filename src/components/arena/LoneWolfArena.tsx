@@ -4021,6 +4021,12 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   return (
     <div className="relative h-full w-full">
       <div ref={mountRef} className="h-full w-full touch-none select-none" />
+      {/* flashbang whiteout — opacity driven straight from the render loop */}
+      <div
+        ref={flashElRef}
+        className="pointer-events-none absolute inset-0 z-40 bg-white"
+        style={{ opacity: 0, transition: "opacity 60ms linear" }}
+      />
       <div
         ref={vignetteRef}
         className="pointer-events-none absolute inset-0"
@@ -4422,6 +4428,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
               bombs={bombs}
               bombArmed={bombArmed}
               onThrowBomb={throwBomb}
+              grenadeLabel={GRENADE_DEFS[grenadeKind].short}
+              onCycleGrenade={cycleGrenade}
               walls={wallCharges}
               onThrowWall={throwShieldWall}
               slots={slots}

@@ -31,6 +31,10 @@ type Props = {
   bombs: number;
   bombArmed?: boolean;
   onThrowBomb: () => void;
+  /** short label of the selected throwable, e.g. FRG / FLS / SMK */
+  grenadeLabel?: string;
+  /** step to the next throwable type */
+  onCycleGrenade?: () => void;
   walls: number;
   onThrowWall: () => void;
   slots: (string | null)[];
@@ -162,6 +166,8 @@ export default function TouchControls({
   healProgress = 0,
   bombs,
   bombArmed,
+  grenadeLabel,
+  onCycleGrenade,
   onThrowBomb,
   walls,
   onThrowWall,
@@ -388,6 +394,15 @@ export default function TouchControls({
           <img src={bombIcon} alt="" className={`h-7 w-7 ${glyph}`} />
           <span className="absolute -bottom-1 -right-1 rounded-full bg-black/85 px-1.5 text-[10px] font-bold text-white">{bombs}</span>
         </button>
+        {grenadeLabel && onCycleGrenade && (
+          <button
+            aria-label="Switch throwable"
+            className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full border border-white/25 bg-black/75 px-2 py-[1px] text-[9px] font-bold tracking-wide text-white"
+            {...tap(onCycleGrenade)}
+          >
+            {grenadeLabel}
+          </button>
+        )}
       </ControlWrap>
 
       <ControlWrap {...wrap} id="scope" anchor="bottom-[122px] right-[110px]" origin="bottom right">
