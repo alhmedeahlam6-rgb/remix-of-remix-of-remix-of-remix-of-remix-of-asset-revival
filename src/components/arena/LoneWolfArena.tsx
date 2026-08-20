@@ -81,6 +81,7 @@ import {
   isDeflectionMelee,
   type Weapon,
 } from "./weapons";
+import { createSafeZone, updateSafeZone, damageOutsideZone, createSafeZoneVisual, type SafeZone } from "./safeZone";
 import {
   BOT_PROFILES,
   createBotBrain,
