@@ -155,6 +155,10 @@ export type BotBrain = {
   losClear: boolean;
   /** seconds of flashbang blindness left; bots hold fire while blinded */
   blindLeft: number;
+  /** decoy bait: position the bot is temporarily investigating */
+  decoyAttract: THREE.Vector3 | null;
+  /** how long the decoy distraction lasts */
+  decoyAttractLeft: number;
 };
 
 const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
