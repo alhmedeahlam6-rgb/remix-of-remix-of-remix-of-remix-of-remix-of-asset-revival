@@ -1708,7 +1708,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
         laser.material.opacity = 1;
         laser.ttl = 0.12;
 
-        spawnImpact(end, hitBot ? new THREE.Color(human.team === "blue" ? 0x3f8fff : 0xff3b1f) : undefined);
+        spawnImpact(end, hitBot ? new THREE.Color(human.team === "blue" ? 0x3f8fff : 0xff3b1f) : healBeam ? new THREE.Color(0x4ade80) : undefined);
         // Kill feed is already pushed by damage()/kill(); don't duplicate it here.
       }
 
