@@ -216,6 +216,9 @@ export const MAGAZINES: Record<string, number> = {
   deagle: 7,
   knife: 0,
   fists: 0,
+  pan: 0,
+  bat: 0,
+  katana: 0,
 };
 
 export function getMagazine(id: string | null) {
