@@ -211,6 +211,7 @@ export const RESERVE_AMMO: Record<string, number> = {
   m4a1: 90,
   scar: 90,
   treatment: 75,
+  treatment_sniper: 20,
   mp40: 160,
   ump: 120,
   m1014: 35,
