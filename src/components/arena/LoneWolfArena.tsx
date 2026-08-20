@@ -1312,6 +1312,17 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       // clear lingering decoys between matches
       for (const d of decoys) decoyGroup.remove(d.root);
       decoys.length = 0;
+      // safe zone: starts covering the whole arena, then shrinks to a duel ring
+      const mapW = boundsMaxX - boundsMinX;
+      const mapD = boundsMaxZ - boundsMinZ;
+      safeZoneRef.current = createSafeZone(
+        new THREE.Vector3((boundsMinX + boundsMaxX) / 2, 0, (boundsMinZ + boundsMaxZ) / 2),
+        Math.max(mapW, mapD) * 0.55,
+        Math.min(mapW, mapD) * 0.22,
+        35,
+        60,
+        5,
+      );
       const firstTime = !spawnFxPlayed;
       for (const f of fighters) respawn(f, true);
       if (firstTime) {
