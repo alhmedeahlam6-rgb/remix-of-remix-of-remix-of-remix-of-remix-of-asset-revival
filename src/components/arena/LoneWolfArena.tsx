@@ -299,6 +299,8 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   });
   const [matchConfig, setMatchConfig] = useState(MATCH_CONFIG.standard);
   const matchConfigRef = useRef(matchConfig);
+  const safeZoneRef = useRef<SafeZone | null>(null);
+  const [safeZoneHud, setSafeZoneHud] = useState({ active: false, radius: 0, targetRadius: 0, secondsToShrink: 0, outside: false });
   matchConfigRef.current = matchConfig;
   const [killFeed, setKillFeed] = useState<KillFeedItem[]>([]);
   const [weaponReady, setWeaponReady] = useState(true);
