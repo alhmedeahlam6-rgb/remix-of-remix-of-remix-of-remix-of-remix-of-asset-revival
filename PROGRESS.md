@@ -65,7 +65,7 @@ Last full audit: 2026-08-19.
 - Explosion FX with radius-scaled blast.
 - Medkits: timed channelled heal that cancels if you move.
 - Bot AI (`botAi.ts`): four difficulty tiers (Recruit/Regular/Veteran/Nightmare) scaling reaction, accuracy falloff, damage, headshot chance, move speed, aggression, strafe, burst length and retreat threshold; tactical state machine (hunt / engage / reposition / retreat), collision-aware sliding movement, throttled line-of-sight probes and firing discipline. Enemy skill is selectable in Settings > Gameplay.
-- Throwables: frag (5s fuse, 300 dmg), flashbang (1.7s fuse, 16 m blind — whiteout for the player, bots hold fire ~3s) and smoke (billboard cloud that blocks bot line of sight for 9s). Cycle with `G` on desktop or the chip above the grenade button on touch.
+- Throwables: frag (5s fuse, 300 dmg), flashbang (1.7s fuse, 16 m blind — whiteout for the player, bots hold fire ~3s), smoke (billboard cloud that blocks bot line of sight for 9s) and decoy (fake gunshots, minimap bait, draws bots). Cycle with `G` on desktop or the chip above the grenade button on touch.
 
 ## 7. Movement & controls
 - Desktop: WASD move, jump, sprint, crouch, prone, reload, gloo wall, bomb, medkit, character power, shop — all rebindable.
