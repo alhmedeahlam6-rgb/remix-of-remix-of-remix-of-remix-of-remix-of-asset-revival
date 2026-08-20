@@ -1280,6 +1280,9 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       setMatch(matchRef.current);
       setKillFeed([]);
       saveSentRef.current = false;
+      // clear lingering decoys between matches
+      for (const d of decoys) decoyGroup.remove(d.root);
+      decoys.length = 0;
       const firstTime = !spawnFxPlayed;
       for (const f of fighters) respawn(f, true);
       if (firstTime) {
