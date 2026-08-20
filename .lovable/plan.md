@@ -125,8 +125,8 @@
 - Vending Machines: Spend FF Coins for guns, ammo, or revive cards.
 - Airdrops (Loot Drops): Crates with high-tier weapons like the AWM or Groza.
 - Arsenal Doors: Locked bunkers with extreme loot, requiring a key.
-- Safe Zone (The Circle): White circle indicating where you are safe.
-- Electrical Storm (The Zone): Shrinking wall that damages you outside the safe zone.
+- X Safe Zone (The Circle): White circle indicating where you are safe.
+- X Electrical Storm (The Zone): Shrinking wall that damages you outside the safe zone.
 - Red Zone: Temporary area bombarded with random explosions.
 - UAV Drone (Danger Zone): Drone that reveals everyone inside its yellow circle.
 - Blue Zone: Start-of-match area with much higher tier loot.
