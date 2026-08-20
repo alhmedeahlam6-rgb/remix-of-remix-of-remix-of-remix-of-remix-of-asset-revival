@@ -47,6 +47,10 @@ export const HEAVY_CLASSES: WeaponClass[] = ["Assault", "SMG", "Shotgun", "Snipe
 
 export const isHeavy = (w: Weapon) => HEAVY_CLASSES.includes(w.cls);
 
+/** Melee weapons strapped to the back that can deflect bullets from behind. */
+export const DEFLECTION_MELEES = new Set(["pan", "bat", "katana"]);
+export const isDeflectionMelee = (id: string | null) => !!id && DEFLECTION_MELEES.has(id);
+
 /** Loadout rule: up to 2 heavy weapons + exactly one sidearm (pistol or knife). */
 export const MAX_HEAVY = 2;
 
