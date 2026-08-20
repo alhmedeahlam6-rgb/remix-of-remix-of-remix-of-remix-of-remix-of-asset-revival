@@ -116,6 +116,10 @@ const STEP_UP = 0.55; // anything taller must be jumped
 const GRAVITY = 24;
 const JUMP_SPEED = 8.2;
 const MAX_HP = 200;
+/** cap of the Energy Point reserve */
+const MAX_EP = 100;
+/** EP converted into HP per second while the player is hurt */
+const EP_TO_HP_RATE = 3;
 const PLAYER_DAMAGE = 34;
 const BOT_DAMAGE = 16;
 const RESPAWN_SECONDS = 3;
@@ -336,6 +340,15 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
   const [prone, setProne] = useState(false);
   const [kits, setKits] = useState(3);
   /** fraction (0..1) left in the partially used medkit at the top of the stack */
+  /** Energy Points: yellow reserve that trickles back into HP over time */
+  const [ep, setEp] = useState(0);
+  const epRef = useRef(0);
+  epRef.current = ep;
+  /** inhalers: instant small HP + EP, usable on the move */
+  const [inhalers, setInhalers] = useState(2);
+  const inhalersRef = useRef(2);
+  inhalersRef.current = inhalers;
+  const useInhalerRef = useRef(() => {});
   const [kitPartial, setKitPartial] = useState(1);
   const kitPartialRef = useRef(1);
   kitPartialRef.current = kitPartial;
@@ -1976,6 +1989,65 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       }
     };
 
+    /* ---- inhaler: instant top-up, works while sprinting ---- */
+    const useInhaler = () => {
+      if (!human || !human.alive) return;
+      if (inhalersRef.current <= 0) return;
+      if (human.hp >= MAX_HP && epRef.current >= MAX_EP) return;
+      human.hp = Math.min(MAX_HP, human.hp + 25);
+      setInhalers((n) => Math.max(0, n - 1));
+      setEp((e) => Math.min(MAX_EP, e + 50));
+      playSfx("medkit", 0.7, 0.4);
+      syncHud();
+    };
+    useInhalerRef.current = useInhaler;
+
+    /* ---- mushrooms: ground pickups that grant EP ---- */
+    const mushroomGroup = new THREE.Group();
+    scene.add(mushroomGroup);
+    type Mushroom = { mesh: THREE.Object3D; cooldown: number; base: THREE.Vector3 };
+    const mushrooms: Mushroom[] = [];
+    const capMat = new THREE.MeshStandardMaterial({ color: 0xf2c14e, roughness: 0.7 });
+    const stemMat = new THREE.MeshStandardMaterial({ color: 0xe8e2d0, roughness: 0.9 });
+    const spawnMushroom = (at: THREE.Vector3) => {
+      const g = new THREE.Group();
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), capMat);
+      cap.position.y = 0.26;
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.26, 8), stemMat);
+      stem.position.y = 0.13;
+      g.add(cap, stem);
+      g.position.copy(at);
+      mushroomGroup.add(g);
+      mushrooms.push({ mesh: g, cooldown: 0, base: at.clone() });
+    };
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 + Math.random();
+      const r = 12 + Math.random() * 22;
+      const x = Math.cos(a) * r;
+      const z = Math.sin(a) * r;
+      const gy = groundAt(x, z, 12, 24);
+      if (gy === null) continue;
+      spawnMushroom(new THREE.Vector3(x, gy + 0.02, z));
+    }
+    /** walk over a mushroom to eat it: +30 EP, regrows after 25 s */
+    const tickMushrooms = (dt: number) => {
+      const t = performance.now() * 0.002;
+      for (const m of mushrooms) {
+        if (m.cooldown > 0) {
+          m.cooldown -= dt;
+          if (m.cooldown <= 0) m.mesh.visible = true;
+          continue;
+        }
+        m.mesh.position.y = m.base.y + Math.sin(t + m.base.x) * 0.03;
+        if (!human || !human.alive) continue;
+        if (walkPos.distanceTo(m.base) > 1.1) continue;
+        m.cooldown = 25;
+        m.mesh.visible = false;
+        setEp((e) => Math.min(MAX_EP, e + 30));
+        playSfx("buy", 0.5, 0.6);
+      }
+    };
+
     /* ---- thrown bomb (fixed 5s fuse) ---- */
     const explosionFx = createExplosionFx(BOMB_RADIUS);
     scene.add(explosionFx.group);
@@ -3158,6 +3230,15 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       bombSystem.update(dt);
       explosionFx.update(dt);
       updateBombPreview();
+      tickMushrooms(dt);
+      // EP slowly converts into HP whenever the player is hurt
+      if (human && human.alive && epRef.current > 0 && human.hp < MAX_HP) {
+        const amount = Math.min(epRef.current, EP_TO_HP_RATE * dt);
+        human.hp = Math.min(MAX_HP, human.hp + amount);
+        epRef.current -= amount;
+        setEp(epRef.current);
+        syncHud();
+      }
       for (const fx of impactPool) fx.update(dt);
 
       // character power: tick timers, apply regen, keep the aura on the player
@@ -3768,6 +3849,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
 
     return () => {
       disposed = true;
+      scene.remove(mushroomGroup);
       smokeField.clear();
       skybox?.dispose();
       skybox = null;
@@ -3955,6 +4037,7 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
       if (e.code === "Escape") actionsRef.current?.cancelWall();
       if (is("shop") && matchRef.current.phase === "countdown") setShopOpen((v) => !v);
       if (e.code === "KeyG") cycleGrenadeRef.current();
+      if (e.code === "KeyF") useInhalerRef.current();
       if (e.code === "Backquote") setShowDebug((v) => !v);
       if (e.code === "Digit1" || e.code === "Digit2" || e.code === "Digit3" || e.code === "Digit4") {
         const i = Number(e.code.slice(5)) - 1;
@@ -4298,6 +4381,21 @@ export default function LoneWolfArena({ onReady, onExit, mapId = "frostline" }: 
               </div>
               <span className="text-[9px] uppercase tracking-widest text-white/45 tabular-nums">
                 {playerStatsHud.kills}K/{playerStatsHud.deaths}D
+              </span>
+            </div>
+            {/* EP reserve — trickles into HP; inhalers (F) top it up */}
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-amber-300/80">
+                EP {Math.round(ep)}
+              </span>
+              <div className="h-1 flex-1 overflow-hidden rounded-sm bg-black/70 ring-1 ring-white/10">
+                <div
+                  className="h-full bg-amber-300 transition-all duration-150"
+                  style={{ width: `${Math.max(0, Math.min(100, (ep / MAX_EP) * 100))}%` }}
+                />
+              </div>
+              <span className="text-[9px] uppercase tracking-widest text-white/45 tabular-nums">
+                INH {inhalers}
               </span>
             </div>
           </div>
