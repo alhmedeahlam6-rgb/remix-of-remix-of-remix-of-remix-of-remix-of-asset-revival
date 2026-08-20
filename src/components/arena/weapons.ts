@@ -66,6 +66,9 @@ export const WEAPONS: Weapon[] = [
   { id: "deagle", name: "DESERT EAGLE", cls: "Pistol", price: 1200, damage: 70, fireRate: 30, range: 38, magazine: 7, image: deagle },
   { id: "fists", name: "FISTS", cls: "Melee", price: 0, damage: 34, fireRate: 70, range: 2, magazine: 0, image: fists },
   { id: "knife", name: "COMBAT KNIFE", cls: "Melee", price: 300, damage: 100, fireRate: 55, range: 2, magazine: 0, image: knife },
+  { id: "pan", name: "CAST-IRON PAN", cls: "Melee", price: 800, damage: 85, fireRate: 45, range: 2, magazine: 0, image: panSvg },
+  { id: "bat", name: "TITANIUM BAT", cls: "Melee", price: 700, damage: 78, fireRate: 50, range: 2, magazine: 0, image: batSvg },
+  { id: "katana", name: "KATANA", cls: "Melee", price: 1200, damage: 120, fireRate: 40, range: 2, magazine: 0, image: katanaSvg },
 ];
 
 export const getWeapon = (id: string | null) => WEAPONS.find((w) => w.id === id) ?? null;
